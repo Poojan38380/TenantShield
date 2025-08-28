@@ -17,4 +17,61 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  organizationsOwned Organization[]      @relation("OrganizationOwner")
+  memberships        OrganizationMember[]
+  createdProjects    Project[]
+}
+
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner    User                  @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  members  OrganizationMember[]
+  projects Project[]
+
+  @@index([ownerId])
+}
+
+enum OrgRole {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+model OrganizationMember {
+  id             String   @id @default(uuid())
+  organizationId String
+  userId         String
+  role           OrgRole
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+model Project {
+  id             String   @id @default(uuid())
+  organizationId String
+  name           String
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdBy    User         @relation(fields: [createdById], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([createdById])
 }
