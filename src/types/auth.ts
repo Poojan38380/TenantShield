@@ -53,18 +53,12 @@ export interface UserWithOrganization {
   email: string;
   createdAt: Date;
   updatedAt: Date;
-  memberships: Array<{
-    id: string;
-    role: OrgRole;
-    organization: {
-      id: string;
-      name: string;
-      slug: string;
-    };
-  }>;
-  organizationsOwned: Array<{
+  organizationId: string;
+  role: OrgRole;
+  organization: {
     id: string;
     name: string;
     slug: string;
-  }>;
+    ownerId: string;
+  };
 }
