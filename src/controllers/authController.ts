@@ -137,7 +137,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     } as AuthResponse);
 
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error('Error in register function in authController.ts:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error during registration',
@@ -243,7 +243,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     } as AuthResponse);
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Error in login function in authController.ts:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error during login',
