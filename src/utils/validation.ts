@@ -1,0 +1,72 @@
+import { body, ValidationChain } from 'express-validator';
+
+// Email validation
+export const validateEmail = (): ValidationChain => {
+  return body('email')
+    .isEmail()
+    .withMessage('Please provide a valid email address')
+    .normalizeEmail()
+    .isLength({ min: 5, max: 255 })
+    .withMessage('Email must be between 5 and 255 characters');
+};
+
+// Password validation for registration
+export const validatePassword = (): ValidationChain => {
+  return body('password')
+    .isLength({ min: 8, max: 128 })
+    .withMessage('Password must be between 8 and 128 characters')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/)
+    .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+};
+
+// Organization name validation
+export const validateOrganizationName = (): ValidationChain => {
+  return body('organizationName')
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Organization name must be between 2 and 100 characters')
+    .matches(/^[a-zA-Z0-9\s\-_.]+$/)
+    .withMessage('Organization name can only contain letters, numbers, spaces, hyphens, underscores, and periods')
+    .trim();
+};
+
+// Registration validation rules
+export const validateRegistration = (): ValidationChain[] => {
+  return [
+    validateEmail(),
+    validatePassword(),
+    validateOrganizationName(),
+  ];
+};
+
+// Login validation rules
+export const validateLogin = (): ValidationChain[] => {
+  return [
+    body('email')
+      .isEmail()
+      .withMessage('Please provide a valid email address')
+      .normalizeEmail(),
+    body('password')
+      .notEmpty()
+      .withMessage('Password is required'),
+  ];
+};
+
+// Sanitize organization name to create slug
+export const createSlug = (name: string): string => {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s\-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+};
+
+export default {
+  validateEmail,
+  validatePassword,
+  validateOrganizationName,
+  validateRegistration,
+  validateLogin,
+  createSlug,
+};

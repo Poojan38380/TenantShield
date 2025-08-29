@@ -6,6 +6,8 @@ interface EnvConfig {
   PORT: string;
   DATABASE_URL: string;
   NODE_ENV: 'development' | 'production' | 'test';
+  JWT_SECRET: string;
+  JWT_EXPIRES_IN: string;
 }
 
 const parseEnv = (): EnvConfig => {
@@ -13,9 +15,11 @@ const parseEnv = (): EnvConfig => {
     PORT: process.env.PORT || '3000',
     DATABASE_URL: process.env.DATABASE_URL || '',
     NODE_ENV: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
+    JWT_SECRET: process.env.JWT_SECRET || '',
+    JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '',
   };
 
-  const required = ['DATABASE_URL'];
+  const required = ['DATABASE_URL','JWT_SECRET','JWT_EXPIRES_IN'];
   const missing = required.filter(key => !config[key as keyof EnvConfig]);
   
   if (missing.length > 0) {

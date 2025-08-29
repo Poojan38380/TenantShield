@@ -1,10 +1,24 @@
 import express from "express";
 import { env } from "./config/env.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
+// Middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use("/api/auth", authRoutes);
+
 app.get("/", (req, res) => {
-    res.json({ message: "Welcome to TenantShield!" });
+    res.json({ 
+        message: "Welcome to TenantShield!", 
+        version: "1.0.0",
+        endpoints: {
+            auth: "/api/auth"
+        }
+    });
 });
 
 app.listen(env.PORT, () => {
