@@ -25,19 +25,14 @@ const parseEnv = (): EnvConfig => {
   return config;
 };
 
-// Export validated environment variables
 export const env = parseEnv();
 
-// Type for environment variables
 export type { EnvConfig };
 
-// Helper function to check if running in development
 export const isDevelopment = env.NODE_ENV === 'development';
 
-// Helper function to check if running in production
 export const isProduction = env.NODE_ENV === 'production';
 
-// Helper function to check if running in test
 export const isTest = env.NODE_ENV === 'test';
 
 export default env;
