@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { register, login, logout } from '../controllers/authController.js';
-import { validateRegistration, validateLogin } from '../utils/validation.js';
+import { authController } from '../controllers/authController/index.js';
+import { validationUtils } from '../utils/validation.js';
 
 const router = Router();
 
@@ -10,7 +10,7 @@ const router = Router();
  * @access  Public
  * @body    { email, password, organizationName }
  */
-router.post('/register', validateRegistration(), register);
+router.post('/register', validationUtils.validateRegistration(), authController.register);
 
 /**
  * @route   POST /api/auth/login
@@ -18,13 +18,13 @@ router.post('/register', validateRegistration(), register);
  * @access  Public
  * @body    { email, password }
  */
-router.post('/login', validateLogin(), login);
+router.post('/login', validationUtils.validateLogin(), authController.login);
 
 /**
  * @route   POST /api/auth/logout
  * @desc    Logout user (client-side token removal)
  * @access  Public
  */
-router.post('/logout', logout);
+router.post('/logout', authController.logout);
 
 export default router;

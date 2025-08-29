@@ -1,7 +1,7 @@
 import { body, ValidationChain } from 'express-validator';
 
 // Email validation
-export const validateEmail = (): ValidationChain => {
+const validateEmail = (): ValidationChain => {
   return body('email')
     .isEmail()
     .withMessage('Please provide a valid email address')
@@ -11,7 +11,7 @@ export const validateEmail = (): ValidationChain => {
 };
 
 // Password validation for registration
-export const validatePassword = (): ValidationChain => {
+const validatePassword = (): ValidationChain => {
   return body('password')
     .isLength({ min: 8, max: 128 })
     .withMessage('Password must be between 8 and 128 characters')
@@ -20,7 +20,7 @@ export const validatePassword = (): ValidationChain => {
 };
 
 // Organization name validation
-export const validateOrganizationName = (): ValidationChain => {
+const validateOrganizationName = (): ValidationChain => {
   return body('organizationName')
     .isLength({ min: 2, max: 100 })
     .withMessage('Organization name must be between 2 and 100 characters')
@@ -30,7 +30,7 @@ export const validateOrganizationName = (): ValidationChain => {
 };
 
 // Registration validation rules
-export const validateRegistration = (): ValidationChain[] => {
+const validateRegistration = (): ValidationChain[] => {
   return [
     validateEmail(),
     validatePassword(),
@@ -39,7 +39,7 @@ export const validateRegistration = (): ValidationChain[] => {
 };
 
 // Login validation rules
-export const validateLogin = (): ValidationChain[] => {
+const validateLogin = (): ValidationChain[] => {
   return [
     body('email')
       .isEmail()
@@ -52,7 +52,7 @@ export const validateLogin = (): ValidationChain[] => {
 };
 
 // Sanitize organization name to create slug
-export const createSlug = (name: string): string => {
+const createSlug = (name: string): string => {
   return name
     .toLowerCase()
     .trim()
@@ -62,7 +62,7 @@ export const createSlug = (name: string): string => {
     .replace(/^-|-$/g, '');
 };
 
-export default {
+const validationUtils = {
   validateEmail,
   validatePassword,
   validateOrganizationName,
@@ -70,3 +70,4 @@ export default {
   validateLogin,
   createSlug,
 };
+export { validationUtils };

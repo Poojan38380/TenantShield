@@ -7,7 +7,7 @@ const SALT_ROUNDS = 12;
  * @param password - Plain text password
  * @returns Promise<string> - Hashed password
  */
-export const hashPassword = async (password: string): Promise<string> => {
+const hashPassword = async (password: string): Promise<string> => {
   try {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     return hashedPassword;
@@ -22,7 +22,7 @@ export const hashPassword = async (password: string): Promise<string> => {
  * @param hashedPassword - Hashed password from database
  * @returns Promise<boolean> - True if passwords match
  */
-export const comparePassword = async (
+const comparePassword = async (
   password: string, 
   hashedPassword: string
 ): Promise<boolean> => {
@@ -39,7 +39,7 @@ export const comparePassword = async (
  * @param password - Password to validate
  * @returns Array of validation errors (empty if valid)
  */
-export const validatePassword = (password: string): string[] => {
+const validatePassword = (password: string): string[] => {
   const errors: string[] = [];
   
   if (!password) {
@@ -72,10 +72,7 @@ export const validatePassword = (password: string): string[] => {
   }
   
   return errors;
-};
+}
 
-export default {
-  hash: hashPassword,
-  compare: comparePassword,
-  validate: validatePassword,
-};
+const passwordUtils = { hashPassword, comparePassword, validatePassword };
+export { passwordUtils };
