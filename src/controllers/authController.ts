@@ -30,7 +30,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
     const { email, password, organizationName }: RegisterRequest = req.body;
 
-    // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -43,13 +42,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Create organization slug
     const organizationSlug = createSlug(organizationName);
 
-    // Check if organization exists
     let organization = await prisma.organization.findUnique({
       where: { slug: organizationSlug },
     });
@@ -58,53 +54,50 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     let isNewOrganization = false;
 
     if (!organization) {
-      // Organization doesn't exist, user will be the admin/owner
       userRole = OrgRole.ADMIN;
       isNewOrganization = true;
     } else {
-      // Organization exists, user will be an employee
       userRole = OrgRole.EMPLOYEE;
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      // Create user
-      const newUser = await tx.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-        },
-      });
-
       if (isNewOrganization) {
-        // Create new organization with user as owner
         organization = await tx.organization.create({
           data: {
             name: organizationName,
             slug: organizationSlug,
-            ownerId: newUser.id,
+            ownerId: '', // Temporary
           },
         });
 
-        // Add user as admin member of the organization
-        await tx.organizationMember.create({
+        const newUser = await tx.user.create({
           data: {
-            userId: newUser.id,
+            email,
+            password: hashedPassword,
             organizationId: organization.id,
             role: OrgRole.ADMIN,
           },
         });
+
+        // Update organization with the real owner ID
+        organization = await tx.organization.update({
+          where: { id: organization.id },
+          data: { ownerId: newUser.id },
+        });
+
+        return { user: newUser, organization };
       } else {
-        // Add user as employee to existing organization
-        await tx.organizationMember.create({
+        const newUser = await tx.user.create({
           data: {
-            userId: newUser.id,
+            email,
+            password: hashedPassword,
             organizationId: organization!.id,
             role: OrgRole.EMPLOYEE,
           },
         });
-      }
 
-      return { user: newUser, organization: organization! };
+        return { user: newUser, organization: organization! };
+      }
     });
 
     // Generate JWT token
@@ -115,11 +108,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       organizationId: result.organization.id,
     });
 
-    // Return success response
     res.status(201).json({
       success: true,
-      message: isNewOrganization 
-        ? 'User registered successfully and organization created' 
+      message: isNewOrganization
+        ? 'User registered successfully and organization created'
         : 'User registered successfully and added to organization',
       data: {
         token,
@@ -169,15 +161,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
-        memberships: {
-          include: {
-            organization: true,
-          },
-          take: 1, // take the first membership
-        },
-        organizationsOwned: {
-          take: 1, // take the first owned organization
-        },
+        organization: true,
       },
     });
 
@@ -198,18 +182,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    let userRole: OrgRole;
-    let organization: { id: string; name: string; slug: string };
+    const userRole: OrgRole = user.role;
+    const organization = user.organization;
 
-    if (user.organizationsOwned.length > 0) {
-      // User owns an organization (is admin)
-      userRole = OrgRole.ADMIN;
-      organization = user.organizationsOwned[0];
-    } else if (user.memberships.length > 0) {
-      // User is a member of an organization
-      userRole = user.memberships[0].role;
-      organization = user.memberships[0].organization;
-    } else {
+    if (!organization) {
       res.status(400).json({
         success: false,
         message: 'User is not associated with any organization',
