@@ -4,6 +4,7 @@ import { verifyToken } from '../config/jwt.ts';
 import { JWTPayload, ApiKeyPayload } from '../types/auth.ts';
 import prisma from '../config/prisma.ts';
 import { verifyApiKey, isValidApiKeyFormat } from '../utils/apiKey.ts';
+import { logAudit } from '../services/audit.ts';
 
 // Extract Bearer token from Authorization header
 const extractBearerToken = (authorizationHeader?: string): string | null => {
@@ -28,6 +29,13 @@ const authenticate = (req: Request, res: Response, next: NextFunction): void => 
   try {
     const token = extractBearerToken(req.headers.authorization);
     if (!token) {
+      logAudit(req, {
+        action: 'AUTH_JWT_MISSING',
+        success: false,
+        targetType: 'Route',
+        targetId: req.path,
+        metadata: { authorization: req.headers.authorization ? 'present' : 'absent' },
+      });
       res.status(401).json({ success: false, message: 'Please login to continue.' });
       return;
     }
@@ -36,6 +44,13 @@ const authenticate = (req: Request, res: Response, next: NextFunction): void => 
     (req as any).user = decoded;
     next();
   } catch (error) {
+    logAudit(req, {
+      action: 'AUTH_JWT_INVALID',
+      success: false,
+      targetType: 'Route',
+      targetId: req.path,
+      metadata: { error: String(error) },
+    });
     res.status(401).json({ success: false, message: 'Invalid or expired token' });
   }
 };
@@ -46,11 +61,25 @@ const requireRoles = (...allowedRoles: OrgRole[]) => {
     const user: JWTPayload | undefined = (req as any).user;
 
     if (!user) {
+      logAudit(req, {
+        action: 'AUTH_ROLE_DENIED',
+        success: false,
+        targetType: 'Route',
+        targetId: req.path,
+        metadata: { requiredRoles: allowedRoles },
+      });
       res.status(401).json({ success: false, message: 'Please login to continue.' });
       return;
     }
 
     if (!allowedRoles.includes(user.role)) {
+      logAudit(req, {
+        action: 'AUTH_ROLE_DENIED',
+        success: false,
+        targetType: 'Route',
+        targetId: req.path,
+        metadata: { userRole: user.role, requiredRoles: allowedRoles },
+      });
       res.status(403).json({ success: false, message: 'You are not authorized to access this resource.' });
       return;
     }
@@ -65,12 +94,24 @@ const authenticateApiKey = async (req: Request, res: Response, next: NextFunctio
     const apiKeyValue = extractApiKey(req.headers.authorization);
     
     if (!apiKeyValue) {
+      logAudit(req, {
+        action: 'AUTH_APIKEY_MISSING',
+        success: false,
+        targetType: 'Route',
+        targetId: req.path,
+      });
       res.status(401).json({ success: false, message: 'API key required. Use Authorization: ApiKey <your-key>' });
       return;
     }
 
     // Validate API key format
     if (!isValidApiKeyFormat(apiKeyValue)) {
+      logAudit(req, {
+        action: 'AUTH_APIKEY_FORMAT_INVALID',
+        success: false,
+        targetType: 'Route',
+        targetId: req.path,
+      });
       res.status(401).json({ success: false, message: 'Invalid API key format' });
       return;
     }
@@ -111,6 +152,12 @@ const authenticateApiKey = async (req: Request, res: Response, next: NextFunctio
     }
 
     if (!matchedApiKey) {
+      logAudit(req, {
+        action: 'AUTH_APIKEY_INVALID',
+        success: false,
+        targetType: 'Route',
+        targetId: req.path,
+      });
       res.status(401).json({ success: false, message: 'Invalid or expired API key' });
       return;
     }
@@ -131,6 +178,17 @@ const authenticateApiKey = async (req: Request, res: Response, next: NextFunctio
     };
 
     (req as any).apiKey = apiKeyPayload;
+    // Log successful API key usage
+    logAudit(req, {
+      action: 'API_KEY_USED',
+      success: true,
+      targetType: 'ApiKey',
+      targetId: matchedApiKey.id,
+      metadata: { keyName: matchedApiKey.name, route: req.path, method: req.method },
+      organizationId: matchedApiKey.organizationId,
+      actorType: 'API_KEY',
+      actorId: matchedApiKey.id,
+    });
     next();
   } catch (error) {
     console.error('API key authentication error:', error);

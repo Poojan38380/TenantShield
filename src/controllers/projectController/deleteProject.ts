@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.ts';
 import { JWTPayload, ApiKeyPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
+import { logAudit } from '../../services/audit.ts';
 
 export const deleteProject = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -91,6 +92,16 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
       where: { id: projectId },
     });
 
+    await logAudit(req, {
+      action: 'PROJECT_DELETED',
+      success: true,
+      targetType: 'Project',
+      targetId: projectId,
+      organizationId: organizationId,
+      actorType: user ? 'USER' : 'API_KEY',
+      actorId: (user?.userId || apiKey?.keyId)!,
+    });
+
     res.status(200).json({
       success: true,
       message: 'Project deleted successfully',
@@ -105,6 +116,13 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
 
   } catch (error) {
     console.error('Error in deleteProject:', error);
+    await logAudit(req, {
+      action: 'PROJECT_DELETE_FAILED',
+      success: false,
+      targetType: 'Project',
+      targetId: (req.params as any).projectId,
+      metadata: { error: String(error) },
+    });
     res.status(500).json({
       success: false,
       message: 'Internal server error while deleting project',

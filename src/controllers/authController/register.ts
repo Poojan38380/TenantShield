@@ -7,11 +7,19 @@ import { validationUtils } from '../../utils/validation.ts';
 import { AuthResponse, RegisterRequest } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
 import { passwordUtils } from '../../utils/password.ts';
+import { logAudit } from '../../services/audit.ts';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
+        await logAudit(req, {
+          action: 'USER_REGISTER_VALIDATION_FAILED',
+          success: false,
+          targetType: 'User',
+          targetId: 'unknown',
+          metadata: { errors: errors.array().slice(0, 5) },
+        });
         res.status(400).json({
           success: false,
           message: 'Validation failed',
@@ -30,6 +38,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       });
   
       if (existingUser) {
+        await logAudit(req, {
+          action: 'USER_REGISTER_CONFLICT',
+          success: false,
+          targetType: 'User',
+          targetId: existingUser.id,
+          metadata: { email },
+        });
         res.status(409).json({
           success: false,
           message: 'User already exists with this email',
@@ -103,6 +118,30 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         organizationId: result.organization.id,
       });
   
+      await logAudit(req, {
+        action: 'USER_REGISTER_SUCCESS',
+        success: true,
+        targetType: 'User',
+        targetId: result.user.id,
+        organizationId: result.organization.id,
+        actorType: 'USER',
+        actorId: result.user.id,
+        metadata: { email: result.user.email, role: userRole, isNewOrganization },
+      });
+
+      if (isNewOrganization) {
+        await logAudit(req, {
+          action: 'ORGANIZATION_CREATED',
+          success: true,
+          targetType: 'Organization',
+          targetId: result.organization.id,
+          organizationId: result.organization.id,
+          actorType: 'USER',
+          actorId: result.user.id,
+          metadata: { name: result.organization.name, slug: result.organization.slug },
+        });
+      }
+
       res.status(201).json({
         success: true,
         message: isNewOrganization
@@ -125,6 +164,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   
     } catch (error) {
       console.error('Error in register function in authController.ts:', error);
+      await logAudit(req, {
+        action: 'USER_REGISTER_FAILED',
+        success: false,
+        targetType: 'User',
+        targetId: 'unknown',
+        metadata: { error: String(error) },
+      });
       res.status(500).json({
         success: false,
         message: 'Internal server error during registration',

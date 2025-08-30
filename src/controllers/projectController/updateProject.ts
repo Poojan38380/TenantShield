@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.ts';
 import { JWTPayload, ApiKeyPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
+import { logAudit } from '../../services/audit.ts';
 
 interface UpdateProjectRequest {
   name?: string;
@@ -122,6 +123,17 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
       },
     });
 
+    await logAudit(req, {
+      action: 'PROJECT_UPDATED',
+      success: true,
+      targetType: 'Project',
+      targetId: updatedProject.id,
+      organizationId: organizationId,
+      actorType: user ? 'USER' : 'API_KEY',
+      actorId: (user?.userId || apiKey?.keyId)!,
+      metadata: { changed: { name } },
+    });
+
     res.status(200).json({
       success: true,
       message: 'Project updated successfully',
@@ -132,6 +144,13 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
 
   } catch (error) {
     console.error('Error in updateProject in projectController.ts:', error);
+    await logAudit(req, {
+      action: 'PROJECT_UPDATE_FAILED',
+      success: false,
+      targetType: 'Project',
+      targetId: (req.params as any).projectId,
+      metadata: { error: String(error) },
+    });
     res.status(500).json({
       success: false,
       message: 'Internal server error while updating project',

@@ -4,6 +4,7 @@ import { OrgRole } from '@prisma/client';
 import prisma from '../../config/prisma.ts';
 import { JWTPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
+import { logAudit } from '../../services/audit.ts';
 
 interface ChangeUserRoleRequest {
   userId: string;
@@ -71,6 +72,17 @@ export const changeUserRole = async (req: Request, res: Response): Promise<void>
       },
     });
 
+    await logAudit(req, {
+      action: 'ADMIN_CHANGE_ROLE',
+      success: true,
+      targetType: 'User',
+      targetId: userId,
+      organizationId: admin.organizationId,
+      actorType: 'USER',
+      actorId: admin.userId,
+      metadata: { newRole },
+    });
+
     res.status(200).json({
       success: true,
       message: `User role successfully changed to ${newRole}`,
@@ -81,6 +93,13 @@ export const changeUserRole = async (req: Request, res: Response): Promise<void>
 
   } catch (error) {
     console.error('Error in changeUserRole:', error);
+    await logAudit(req, {
+      action: 'ADMIN_CHANGE_ROLE_FAILED',
+      success: false,
+      targetType: 'User',
+      targetId: (req.body as any).userId,
+      metadata: { error: String(error) },
+    });
     res.status(500).json({
       success: false,
       message: 'Internal server error while changing user role',

@@ -4,6 +4,7 @@ import prisma from '../../config/prisma.ts';
 import { generateApiKey, hashApiKey, maskApiKey } from '../../utils/apiKey.ts';
 import { JWTPayload, CreateApiKeyResponse } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
+import { logAudit } from '../../services/audit.ts';
 
 export const rotateApiKey = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -80,6 +81,16 @@ export const rotateApiKey = async (req: Request, res: Response): Promise<void> =
       createdBy: updatedApiKey.createdBy,
     };
 
+    await logAudit(req, {
+      action: 'API_KEY_ROTATED',
+      success: true,
+      targetType: 'ApiKey',
+      targetId: updatedApiKey.id,
+      organizationId: user.organizationId,
+      actorType: 'USER',
+      actorId: user.userId,
+    });
+
     res.status(200).json({
       success: true,
       message: 'API key rotated successfully. Please update your applications with the new key.',
@@ -88,6 +99,13 @@ export const rotateApiKey = async (req: Request, res: Response): Promise<void> =
 
   } catch (error) {
     console.error('Error rotating API key:', error);
+    await logAudit(req, {
+      action: 'API_KEY_ROTATE_FAILED',
+      success: false,
+      targetType: 'ApiKey',
+      targetId: (req.params as any).keyId,
+      metadata: { error: String(error) },
+    });
     res.status(500).json({
       success: false,
       message: 'Internal server error'

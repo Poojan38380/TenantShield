@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.ts';
 import { JWTPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
+import { logAudit } from '../../services/audit.ts';
 
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -79,6 +80,17 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
       where: { id: userId },
     });
 
+    await logAudit(req, {
+      action: 'ADMIN_DELETE_USER',
+      success: true,
+      targetType: 'User',
+      targetId: userId,
+      organizationId: admin.organizationId,
+      actorType: 'USER',
+      actorId: admin.userId,
+      metadata: { deletedUserEmail: deletedUserInfo.email },
+    });
+
     res.status(200).json({
       success: true,
       message: 'User and their created projects deleted successfully',
@@ -89,6 +101,13 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
 
   } catch (error) {
     console.error('Error in deleteUser:', error);
+    await logAudit(req, {
+      action: 'ADMIN_DELETE_USER_FAILED',
+      success: false,
+      targetType: 'User',
+      targetId: (req.params as any).userId,
+      metadata: { error: String(error) },
+    });
     res.status(500).json({
       success: false,
       message: 'Internal server error while deleting user',

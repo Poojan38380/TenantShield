@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.ts';
 import { JWTPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
+import { logAudit } from '../../services/audit.ts';
 
 export const deleteApiKey = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -41,6 +42,16 @@ export const deleteApiKey = async (req: Request, res: Response): Promise<void> =
       where: { id: keyId }
     });
 
+    await logAudit(req, {
+      action: 'API_KEY_DELETED',
+      success: true,
+      targetType: 'ApiKey',
+      targetId: keyId,
+      organizationId: user.organizationId,
+      actorType: 'USER',
+      actorId: user.userId,
+    });
+
     res.status(200).json({
       success: true,
       message: 'API key deleted successfully'
@@ -48,6 +59,13 @@ export const deleteApiKey = async (req: Request, res: Response): Promise<void> =
 
   } catch (error) {
     console.error('Error deleting API key:', error);
+    await logAudit(req, {
+      action: 'API_KEY_DELETE_FAILED',
+      success: false,
+      targetType: 'ApiKey',
+      targetId: (req.params as any).keyId,
+      metadata: { error: String(error) },
+    });
     res.status(500).json({
       success: false,
       message: 'Internal server error'
