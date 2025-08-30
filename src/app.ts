@@ -44,16 +44,12 @@ app.get("/", (req, res) => {
     });
 });
 
-// 404 Handler - Must be after all routes
+// 404 Handler - after all routes
 app.use(notFoundHandler);
-
-// Global Error Handler - Must be last middleware
+// Global Error Handler - last middleware
 app.use(globalErrorHandler);
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', unhandledRejectionHandler);
-
-// Handle uncaught exceptions
 process.on('uncaughtException', uncaughtExceptionHandler);
 
 app.listen(env.PORT, () => {
