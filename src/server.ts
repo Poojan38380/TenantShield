@@ -1,6 +1,6 @@
-import app from "./app.ts";
-import { env } from "./config/env.ts";
-import { unhandledRejectionHandler, uncaughtExceptionHandler } from "./middleware/error.ts";
+import app from "./app.js";
+import { env } from "./config/env.js";
+import { unhandledRejectionHandler, uncaughtExceptionHandler } from "./middleware/error.js";
 
 process.on('unhandledRejection', unhandledRejectionHandler);
 process.on('uncaughtException', uncaughtExceptionHandler);

@@ -1,15 +1,15 @@
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
-import { defaultLimiter, corsOptions, helmetOptions } from "./config/security.ts";
+import { defaultLimiter, corsOptions, helmetOptions } from "./config/security.js";
 import { 
   globalErrorHandler, 
   notFoundHandler, 
-} from "./middleware/error.ts";
-import authRoutes from "./routes/authRoutes.ts";
-import userManagementRoutes from "./routes/userManagementRoutes.ts";
-import projectRoutes from "./routes/projectRoutes.ts";
-import apiKeyRoutes from "./routes/apiKeyRoutes.ts";
+} from "./middleware/error.js";
+import authRoutes from "./routes/authRoutes.js";
+import userManagementRoutes from "./routes/userManagementRoutes.js";
+import projectRoutes from "./routes/projectRoutes.js";
+import apiKeyRoutes from "./routes/apiKeyRoutes.js";
 
 const app = express();
 

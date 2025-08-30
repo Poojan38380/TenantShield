@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { apiKeyController } from '../controllers/apiKeyController/index.ts';
-import { authMiddleware } from '../middleware/auth.ts';
-import { validationUtils } from '../utils/validation.ts';
-import { attachTenant } from '../middleware/tenant.ts';
-import { apiKeyManagementLimiter } from '../config/security.ts';
+import { apiKeyController } from '../controllers/apiKeyController/index.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { validationUtils } from '../utils/validation.js';
+import { attachTenant } from '../middleware/tenant.js';
+import { apiKeyManagementLimiter } from '../config/security.js';
 
 const router = Router();
 router.use(apiKeyManagementLimiter);

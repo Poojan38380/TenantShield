@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { OrgRole } from '@prisma/client';
-import { adminController } from '../controllers/adminController/index.ts';
-import { authMiddleware } from '../middleware/auth.ts';
-import { validationUtils } from '../utils/validation.ts';
-import { attachTenant } from '../middleware/tenant.ts';
+import { adminController } from '../controllers/adminController/index.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { validationUtils } from '../utils/validation.js';
+import { attachTenant } from '../middleware/tenant.js';
 
 const router = Router();
 

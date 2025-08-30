@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import { OrgRole } from '@prisma/client';
-import { verifyToken } from '../config/jwt.ts';
-import { JWTPayload, ApiKeyPayload } from '../types/auth.ts';
-import prisma from '../config/prisma.ts';
-import { verifyApiKey, isValidApiKeyFormat } from '../utils/apiKey.ts';
-import { logAudit } from '../services/audit.ts';
+import { verifyToken } from '../config/jwt.js';
+import { JWTPayload, ApiKeyPayload } from '../types/auth.js';
+import prisma from '../config/prisma.js';
+import { verifyApiKey, isValidApiKeyFormat } from '../utils/apiKey.js';
+import { logAudit } from '../services/audit.js';
 
 // Extract Bearer token from Authorization header
 const extractBearerToken = (authorizationHeader?: string): string | null => {

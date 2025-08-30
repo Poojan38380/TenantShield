@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { OrgRole } from '@prisma/client';
-import prisma from '../../config/prisma.ts';
-import { generateToken } from '../../config/jwt.ts';
-import { validationUtils } from '../../utils/validation.ts';
-import { AuthResponse, RegisterRequest } from '../../types/auth.ts';
-import { ApiResponse } from '../../types/api.ts';
-import { passwordUtils } from '../../utils/password.ts';
-import { logAudit } from '../../services/audit.ts';
+import prisma from '../../config/prisma.js';
+import { generateToken } from '../../config/jwt.js';
+import { validationUtils } from '../../utils/validation.js';
+import { AuthResponse, RegisterRequest } from '../../types/auth.js';
+import { ApiResponse } from '../../types/api.js';
+import { passwordUtils } from '../../utils/password.js';
+import { logAudit } from '../../services/audit.js';
 
 export const register = async (req: Request, res: Response): Promise<void> => {
     try {
