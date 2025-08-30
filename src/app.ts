@@ -1,7 +1,7 @@
 import express from "express";
-import { env } from "./config/env.js";
-import authRoutes from "./routes/authRoutes.js";
-import userManagementRoutes from "./routes/userManagementRoutes.js";
+import { env } from "./config/env.ts";
+import authRoutes from "./routes/authRoutes.ts";
+import userManagementRoutes from "./routes/userManagementRoutes.ts";
 
 const app = express();
 
