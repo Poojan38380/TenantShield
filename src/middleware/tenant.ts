@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { JWTPayload, ApiKeyPayload } from '../types/auth.ts';
+import { JWTPayload, ApiKeyPayload } from '../types/auth.js';
 
 export interface TenantContextRequest extends Request {
 	tenantId?: string;

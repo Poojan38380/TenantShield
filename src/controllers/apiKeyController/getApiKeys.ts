@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import prisma from '../../config/prisma.ts';
-import { maskApiKey } from '../../utils/apiKey.ts';
-import { JWTPayload, ApiKeyResponse } from '../../types/auth.ts';
+import prisma from '../../config/prisma.js';
+import { maskApiKey } from '../../utils/apiKey.js';
+import { JWTPayload, ApiKeyResponse } from '../../types/auth.js';
 
 export const getApiKeys = async (req: Request, res: Response): Promise<void> => {
   try {

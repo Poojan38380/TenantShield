@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { env, isDevelopment } from '../config/env.ts';
-import { ApiResponse } from '../types/api.ts';
+import { env, isDevelopment } from '../config/env.js';
+import { ApiResponse } from '../types/api.js';
 
 // Custom error class for application errors
 export class AppError extends Error {

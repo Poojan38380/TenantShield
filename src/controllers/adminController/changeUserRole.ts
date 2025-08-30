@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { OrgRole } from '@prisma/client';
-import prisma from '../../config/prisma.ts';
-import { JWTPayload } from '../../types/auth.ts';
-import { ApiResponse } from '../../types/api.ts';
-import { logAudit } from '../../services/audit.ts';
+import prisma from '../../config/prisma.js';
+import { JWTPayload } from '../../types/auth.js';
+import { ApiResponse } from '../../types/api.js';
+import { logAudit } from '../../services/audit.js';
 
 interface ChangeUserRoleRequest {
   userId: string;

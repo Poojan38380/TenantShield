@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import prisma from '../../config/prisma.ts';
-import { JWTPayload, ApiKeyPayload } from '../../types/auth.ts';
-import { ApiResponse } from '../../types/api.ts';
+import prisma from '../../config/prisma.js';
+import { JWTPayload, ApiKeyPayload } from '../../types/auth.js';
+import { ApiResponse } from '../../types/api.js';
 
 export const getProjectById = async (req: Request, res: Response): Promise<void> => {
   try {

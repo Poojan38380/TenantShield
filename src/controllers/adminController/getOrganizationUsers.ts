@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import prisma from '../../config/prisma.ts';
-import { JWTPayload } from '../../types/auth.ts';
-import { ApiResponse } from '../../types/api.ts';
+import prisma from '../../config/prisma.js';
+import { JWTPayload } from '../../types/auth.js';
+import { ApiResponse } from '../../types/api.js';
 
 export const getOrganizationUsers = async (req: Request, res: Response): Promise<void> => {
   try {

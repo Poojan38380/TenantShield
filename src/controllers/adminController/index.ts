@@ -1,6 +1,6 @@
-import { changeUserRole } from './changeUserRole.ts';
-import { getOrganizationUsers } from './getOrganizationUsers.ts';
-import { deleteUser } from './deleteUser.ts';
+import { changeUserRole } from './changeUserRole.js';
+import { getOrganizationUsers } from './getOrganizationUsers.js';
+import { deleteUser } from './deleteUser.js';
 
 export const adminController = {
   changeUserRole,

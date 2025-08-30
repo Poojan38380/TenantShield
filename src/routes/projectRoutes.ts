@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { projectController } from '../controllers/projectController/index.ts';
-import { validationUtils } from '../utils/validation.ts';
-import { authMiddleware } from '../middleware/auth.ts';
-import { attachTenant } from '../middleware/tenant.ts';
+import { projectController } from '../controllers/projectController/index.js';
+import { validationUtils } from '../utils/validation.js';
+import { authMiddleware } from '../middleware/auth.js';
+import { attachTenant } from '../middleware/tenant.js';
 
 const router = Router();
 

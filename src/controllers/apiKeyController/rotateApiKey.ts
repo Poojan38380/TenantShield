@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import prisma from '../../config/prisma.ts';
-import { generateApiKey, hashApiKey, maskApiKey } from '../../utils/apiKey.ts';
-import { JWTPayload, CreateApiKeyResponse } from '../../types/auth.ts';
-import { ApiResponse } from '../../types/api.ts';
-import { logAudit } from '../../services/audit.ts';
+import prisma from '../../config/prisma.js';
+import { generateApiKey, hashApiKey, maskApiKey } from '../../utils/apiKey.js';
+import { JWTPayload, CreateApiKeyResponse } from '../../types/auth.js';
+import { ApiResponse } from '../../types/api.js';
+import { logAudit } from '../../services/audit.js';
 
 export const rotateApiKey = async (req: Request, res: Response): Promise<void> => {
   try {
