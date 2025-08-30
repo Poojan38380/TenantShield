@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { validationResult } from 'express-validator';
 import { OrgRole } from '@prisma/client';
 import prisma from '../../config/prisma.ts';
@@ -6,6 +6,7 @@ import { generateToken } from '../../config/jwt.ts';
 import { AuthResponse, LoginRequest } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
 import { passwordUtils } from '../../utils/password.ts';
+import { createError } from '../../middleware/error.ts';
 
 
 export const login = async (req: Request, res: Response): Promise<void> => {
