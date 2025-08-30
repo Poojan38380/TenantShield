@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
-import { env } from './env.js';
-import { JWTPayload } from '../types/auth.js';
+import { env } from './env.ts';
+import { JWTPayload } from '../types/auth.ts';
 
 // JWT Configuration
 export const JWT_CONFIG = {

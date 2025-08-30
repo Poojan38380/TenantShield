@@ -1,6 +1,7 @@
 import express from "express";
 import { env } from "./config/env.js";
 import authRoutes from "./routes/authRoutes.js";
+import userManagementRoutes from "./routes/userManagementRoutes.js";
 
 const app = express();
 
@@ -10,13 +11,15 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/manage", userManagementRoutes);
 
 app.get("/", (req, res) => {
     res.json({ 
         message: "Welcome to TenantShield!", 
         version: "1.0.0",
         endpoints: {
-            auth: "/api/auth"
+            auth: "/api/auth",
+            admin: "/api/admin"
         }
     });
 });

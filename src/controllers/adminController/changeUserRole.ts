@@ -1,0 +1,84 @@
+import { Request, Response } from 'express';
+import { validationResult } from 'express-validator';
+import { OrgRole } from '@prisma/client';
+import prisma from '../../config/prisma.ts';
+import { JWTPayload } from '../../types/auth.ts';
+import { ApiResponse } from '../../types/api.ts';
+
+interface ChangeUserRoleRequest {
+  userId: string;
+  newRole: OrgRole;
+}
+
+export const changeUserRole = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array().map(err => ({
+          field: err.type === 'field' ? err.path : 'unknown',
+          message: err.msg,
+        })),
+      } as ApiResponse);
+      return;
+    }
+
+    const admin: JWTPayload = (req as any).user;
+    const { userId, newRole }: ChangeUserRoleRequest = req.body;
+
+    // Find the target user
+    const targetUser = await prisma.user.findUnique({
+      where: { id: userId !== admin.userId ? userId : undefined },
+      include: { organization: true },
+    });
+
+    if (!targetUser) {
+      res.status(404).json({
+        success: false,
+        message: 'User not found',
+      } as ApiResponse);
+      return;
+    }
+
+    // Ensure the target user is in the same organization as the admin
+    if (targetUser.organizationId !== admin.organizationId) {
+      res.status(403).json({
+        success: false,
+        message: 'Cannot modify users from other organizations',
+      } as ApiResponse);
+      return;
+    }
+
+    // Update the user's role
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { role: newRole },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `User role successfully changed to ${newRole}`,
+      data: {
+        user: updatedUser,
+      },
+    } as ApiResponse);
+
+  } catch (error) {
+    console.error('Error in changeUserRole:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while changing user role',
+      error: process.env.NODE_ENV === 'development' ? String(error) : undefined,
+    } as ApiResponse);
+  }
+};
+

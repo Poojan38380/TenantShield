@@ -1,6 +1,6 @@
-import { register } from "./register.js";
-import { login } from "./login.js";
-import { logout } from "./logout.js";
+import { register } from "./register.ts";
+import { login } from "./login.ts";
+import { logout } from "./logout.ts";
 
 
 const authController = {

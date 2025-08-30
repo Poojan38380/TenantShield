@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { authController } from '../controllers/authController/index.js';
-import { validationUtils } from '../utils/validation.js';
+import { authController } from '../controllers/authController/index.ts';
+import { validationUtils } from '../utils/validation.ts';
+import { authMiddleware } from '../middleware/auth.ts';
 
 const router = Router();
 
@@ -19,6 +20,9 @@ router.post('/register', validationUtils.validateRegistration(), authController.
  * @body    { email, password }
  */
 router.post('/login', validationUtils.validateLogin(), authController.login);
+
+//Only logged users can send request to logout.
+router.use(authMiddleware.authenticate);
 
 /**
  * @route   POST /api/auth/logout
