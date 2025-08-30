@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.ts';
-import { JWTPayload } from '../../types/auth.ts';
+import { JWTPayload, ApiKeyPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
 
 interface CreateProjectRequest {
@@ -23,13 +23,27 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // Handle both JWT and API key authentication
     const user: JWTPayload = (req as any).user;
+    const apiKey: ApiKeyPayload = (req as any).apiKey;
     const { name }: CreateProjectRequest = req.body;
+
+    // Get organization ID and creator ID from either JWT user or API key
+    const organizationId = user?.organizationId || apiKey?.organizationId;
+    const createdById = user?.userId || apiKey?.createdById;
+    
+    if (!organizationId || !createdById) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+      } as ApiResponse);
+      return;
+    }
 
     const existingProject = await prisma.project.findUnique({
       where: {
         organizationId_name: {
-          organizationId: user.organizationId,
+          organizationId: organizationId,
           name: name.trim(),
         },
       },
@@ -46,8 +60,8 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
     const project = await prisma.project.create({
       data: {
         name: name.trim(),
-        organizationId: user.organizationId,
-        createdById: user.userId,
+        organizationId: organizationId,
+        createdById: createdById,
       },
       include: {
         createdBy: {
