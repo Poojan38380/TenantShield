@@ -62,3 +62,44 @@ export interface UserWithOrganization {
     ownerId: string;
   };
 }
+
+// API Key payload for authenticated API requests
+export interface ApiKeyPayload {
+  keyId: string;
+  organizationId: string;
+  organizationName: string;
+  createdById: string;
+  keyName: string;
+}
+
+// Extended Request interface for API key authenticated routes
+export interface ApiKeyAuthenticatedRequest extends Request {
+  apiKey?: ApiKeyPayload;
+}
+
+// API Key creation request
+export interface CreateApiKeyRequest {
+  name: string;
+  expiresInHours?: number; // Number of hours from now, optional
+}
+
+// API Key response
+export interface ApiKeyResponse {
+  id: string;
+  name: string;
+  keyHash: string; // For display purposes only (masked)
+  createdAt: Date;
+  updatedAt: Date;
+  lastUsedAt?: Date;
+  expiresAt?: Date;
+  isActive: boolean;
+  createdBy: {
+    id: string;
+    email: string;
+  };
+}
+
+// API Key creation response (includes the actual key - only shown once)
+export interface CreateApiKeyResponse extends ApiKeyResponse {
+  apiKey: string; // The actual key - only returned on creation
+}

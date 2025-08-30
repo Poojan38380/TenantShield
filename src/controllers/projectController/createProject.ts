@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.ts';
-import { JWTPayload } from '../../types/auth.ts';
+import { JWTPayload, ApiKeyPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
 
 interface CreateProjectRequest {
@@ -24,12 +24,61 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
     }
 
     const user: JWTPayload = (req as any).user;
+    const apiKey: ApiKeyPayload = (req as any).apiKey;
     const { name }: CreateProjectRequest = req.body;
+
+    const organizationId = user?.organizationId || apiKey?.organizationId;
+    let createdById = user?.userId || apiKey?.createdById;
+    
+    if (!organizationId) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+      } as ApiResponse);
+      return;
+    }
+
+    if (user) {
+      // check user role
+      if (user.role === 'EMPLOYEE') {
+        res.status(403).json({
+          success: false,
+          message: 'Only Admins and Managers can create projects',
+        } as ApiResponse);
+        return;
+      }
+      createdById = user.userId;
+    } else if (apiKey) {
+      // verify the creator exists and get their info
+      const apiKeyCreator = await prisma.user.findFirst({
+        where: {
+          id: apiKey.createdById,
+          organizationId: organizationId,
+        }
+      });
+
+      if (!apiKeyCreator) {
+        res.status(401).json({
+          success: false,
+          message: 'API key creator no longer exists or does not belong to the organization',
+        } as ApiResponse);
+        return;
+      }
+      createdById = apiKeyCreator.id;
+    }
+
+    if (!createdById) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+      } as ApiResponse);
+      return;
+    }
 
     const existingProject = await prisma.project.findUnique({
       where: {
         organizationId_name: {
-          organizationId: user.organizationId,
+          organizationId: organizationId,
           name: name.trim(),
         },
       },
@@ -46,8 +95,8 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
     const project = await prisma.project.create({
       data: {
         name: name.trim(),
-        organizationId: user.organizationId,
-        createdById: user.userId,
+        organizationId: organizationId,
+        createdById: createdById,
       },
       include: {
         createdBy: {

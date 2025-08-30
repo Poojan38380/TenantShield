@@ -21,6 +21,7 @@ model User {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   projects     Project[]
+  apiKeys      ApiKey[]
 
   @@index([organizationId])
 }
@@ -35,6 +36,7 @@ model Organization {
   updatedAt DateTime @updatedAt
   users    User[]
   projects Project[]
+  apiKeys  ApiKey[]
 
   @@index([ownerId])
 }
@@ -59,5 +61,25 @@ model Project {
 
   @@unique([organizationId, name])
   @@index([organizationId])
+  @@index([createdById])
+}
+
+model ApiKey {
+  id             String   @id @default(uuid())
+  organizationId String
+  keyHash        String   @unique // Store hashed version for security
+  name           String   // User-friendly name for the key
+  createdById    String
+  lastUsedAt     DateTime?
+  expiresAt      DateTime?  //number of hours
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  createdBy    User         @relation(fields: [createdById], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([organizationId])
+  @@index([keyHash])
   @@index([createdById])
 }

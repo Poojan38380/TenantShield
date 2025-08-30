@@ -5,31 +5,31 @@ import { authMiddleware } from '../middleware/auth.ts';
 
 const router = Router();
 
-router.use(authMiddleware.authenticate);
+// Use flexible authentication (supports both JWT and API keys)
+router.use(authMiddleware.authenticateFlexible);
 
 /**
  * @route   GET /api/projects
  * @desc    Get all projects for the authenticated user's organization
- * @access  Private (All authenticated users in the organization)
+ * @access  Private (All authenticated users in the organization or valid API key)
  */
 router.get('/', projectController.getProjects);
 
 /**
  * @route   GET /api/projects/:projectId
  * @desc    Get a specific project by ID (only if it belongs to user's organization)
- * @access  Private (All authenticated users in the organization)
+ * @access  Private (All authenticated users in the organization or valid API key)
  */
 router.get('/:projectId', validationUtils.validateProjectIdParam(), projectController.getProjectById);
 
 /**
  * @route   POST /api/projects
  * @desc    Create a new project in the authenticated user's organization
- * @access  Private (Admin and Manager only)
+ * @access  Private (Admin and Manager roles only, or valid API key)
  * @body    { name }
  */
 router.post(
   '/', 
-  authMiddleware.managerOrAdmin,
   validationUtils.validateCreateProject(), 
   projectController.createProject
 );
@@ -37,12 +37,11 @@ router.post(
 /**
  * @route   PUT /api/projects/:projectId
  * @desc    Update a project (only if it belongs to user's organization)
- * @access  Private (Admin and Manager only)
+ * @access  Private (Admin and Manager roles only, or valid API key)
  * @body    { name? }
  */
 router.put(
   '/:projectId',
-  authMiddleware.managerOrAdmin,
   validationUtils.validateUpdateProject(),
   projectController.updateProject
 );
@@ -50,11 +49,10 @@ router.put(
 /**
  * @route   DELETE /api/projects/:projectId
  * @desc    Delete a project (only if it belongs to user's organization)
- * @access  Private (Admin and Manager only)
+ * @access  Private (Admin and Manager roles only, or valid API key)
  */
 router.delete(
   '/:projectId',
-  authMiddleware.managerOrAdmin,
   validationUtils.validateProjectIdParam(),
   projectController.deleteProject
 );

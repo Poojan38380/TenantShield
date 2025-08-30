@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.ts';
-import { JWTPayload } from '../../types/auth.ts';
+import { JWTPayload, ApiKeyPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
 
 interface UpdateProjectRequest {
@@ -24,13 +24,51 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
     }
 
     const user: JWTPayload = (req as any).user;
+    const apiKey: ApiKeyPayload = (req as any).apiKey;
     const { projectId } = req.params;
     const { name }: UpdateProjectRequest = req.body;
+
+    const organizationId = user?.organizationId || apiKey?.organizationId;
+    
+    if (!organizationId) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+      } as ApiResponse);
+      return;
+    }
+
+    if (user) {
+      // check user role
+      if (user.role === 'EMPLOYEE') {
+        res.status(403).json({
+          success: false,
+          message: 'Only Admins and Managers can update projects',
+        } as ApiResponse);
+        return;
+      }
+    } else if (apiKey) {
+      // verify the creator exists
+      const apiKeyCreator = await prisma.user.findFirst({
+        where: {
+          id: apiKey.createdById,
+          organizationId: organizationId,
+        }
+      });
+
+      if (!apiKeyCreator) {
+        res.status(401).json({
+          success: false,
+          message: 'API key creator no longer exists or does not belong to the organization',
+        } as ApiResponse);
+        return;
+      }
+    }
 
     const existingProject = await prisma.project.findFirst({
       where: {
         id: projectId,
-        organizationId: user.organizationId,
+        organizationId: organizationId,
       },
     });
 
@@ -46,7 +84,7 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
       const conflictingProject = await prisma.project.findUnique({
         where: {
           organizationId_name: {
-            organizationId: user.organizationId,
+            organizationId: organizationId,
             name: name.trim(),
           },
         },
@@ -93,7 +131,7 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
     } as ApiResponse);
 
   } catch (error) {
-    console.error('Error in updateProject:', error);
+    console.error('Error in updateProject in projectController.ts:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error while updating project',

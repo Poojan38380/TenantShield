@@ -3,6 +3,7 @@ import { env } from "./config/env.ts";
 import authRoutes from "./routes/authRoutes.ts";
 import userManagementRoutes from "./routes/userManagementRoutes.ts";
 import projectRoutes from "./routes/projectRoutes.ts";
+import apiKeyRoutes from "./routes/apiKeyRoutes.ts";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/manage", userManagementRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/manage-keys", apiKeyRoutes);
 
 app.get("/", (req, res) => {
     res.json({ 
@@ -22,7 +24,8 @@ app.get("/", (req, res) => {
         endpoints: {
             auth: "/api/auth",
             admin: "/api/manage",
-            projects: "/api/projects"
+            projects: "/api/projects",
+            apiKeys: "/api/manage-keys"
         }
     });
 });
