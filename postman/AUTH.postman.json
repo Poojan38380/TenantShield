@@ -1,0 +1,99 @@
+{
+	"info": {
+		"_postman_id": "e4b99230-b0fd-4d61-bb6b-60c22d65a19d",
+		"name": "AUTH",
+		"description": "## Auth Routes\n\nBase path: `/api/auth`\n\n### Overview\n- Public endpoints: `POST /register`, `POST /login`\n- Protected endpoint: `POST /logout` (requires `Authorization: Bearer <JWT>`)\n- Login and Register are rate-limited for abuse protection\n\n### Endpoints\n\n#### POST `/register`\n- Purpose: Register a user and either create a new organization or join an existing one\n- Body (JSON):\n```json\n{\n  \"email\": \"admin@example.com\",\n  \"password\": \"StrongPass123!\",\n  \"organizationName\": \"Acme Corp\",\n  \"newOrg\": true\n}\n```\n- Success (201) returns a JWT and user info (shape abbreviated):\n```json\n{\n  \"success\": true,\n  \"message\": \"User registered successfully and organization created\",\n  \"data\": {\n    \"token\": \"<JWT>\",\n    \"user\": {\n      \"id\": \"...\",\n      \"email\": \"admin@example.com\",\n      \"role\": \"ADMIN\",\n      \"organization\": { \"id\": \"...\", \"name\": \"Acme Corp\", \"slug\": \"acme-corp\" }\n    }\n  }\n}\n```\n\n#### POST `/login`\n- Purpose: Authenticate and receive a JWT\n- Body (JSON):\n```json\n{ \"email\": \"admin@example.com\", \"password\": \"StrongPass123!\" }\n```\n- Success (200) returns:\n```json\n{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"token\": \"<JWT>\",\n    \"user\": { \"id\": \"...\", \"email\": \"admin@example.com\", \"role\": \"ADMIN\", \"organization\": { \"id\": \"...\", \"name\": \"Acme Corp\", \"slug\": \"acme-corp\" } }\n  }\n}\n```\n\n#### POST `/logout`\n- Purpose: Logical logout; instructs clients to remove stored token\n- Auth: Header `Authorization: Bearer <JWT>`\n- Success (200):\n```json\n{ \"success\": true, \"message\": \"Logged out successfully. Please remove the token from client storage.\" }\n```\n\n### Notes\n- Use header `Authorization: Bearer <JWT>` for protected routes\n- Validation errors return HTTP 400 with field messages; auth failures return 401\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33964087",
+		"_collection_link": "https://www.postman.com/spaceflight-participant-49702036/tenantshield/collection/ss4e6rj/auth?action=share&source=collection_link&creator=33964087"
+	},
+	"item": [
+		{
+			"name": "Register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\":\"employee3@gmail.com\",\r\n    \"password\": \"Poojan@1234\",\r\n    \"organizationName\" : \"first-org\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/auth/register",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\":\"employee@gmail.com\",\r\n    \"password\":\"Poojan@1234\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/auth/login",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Employee Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/api/auth/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

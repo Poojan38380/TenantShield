@@ -1,0 +1,159 @@
+{
+	"info": {
+		"_postman_id": "4c782e85-8761-46f1-a99c-93b41c403c36",
+		"name": "PROJECTS",
+		"description": "## Project Routes\n\nBase path: `/api/projects`\n\n### Auth\n- Supports either: `Authorization: Bearer <JWT>` OR header `x-api-key: <API_KEY>`\n- All requests are tenant-scoped via middleware\n- Role requirements:\n  - Read (GET): Any authenticated user or valid API key\n  - Write (POST/PUT/DELETE): Org `ADMIN` or `MANAGER`, or valid API key\n\n### Endpoints\n\n#### GET `/`\n- Purpose: List all projects for the authenticated organization\n- Auth: JWT or x-api-key\n- Response: Array of projects\n\n#### GET `/:projectId`\n- Purpose: Get project by id within the same organization\n- Auth: JWT or x-api-key\n\n#### POST `/`\n- Purpose: Create a project\n- Auth: Admin/Manager or API key\n- Body:\n```json\n{ \"name\": \"Website Redesign\" }\n```\n\n#### PUT `/:projectId`\n- Purpose: Update a project\n- Auth: Admin/Manager or API key\n- Body:\n```json\n{ \"name\": \"New Name\" }\n```\n\n#### DELETE `/:projectId`\n- Purpose: Delete a project\n- Auth: Admin/Manager or API key\n\n### Notes\n- All project operations are restricted to the caller's organization\n- Validation is applied on IDs and payloads; errors return HTTP 400 with details\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33964087",
+		"_collection_link": "https://www.postman.com/spaceflight-participant-49702036/tenantshield/collection/gnjnpxo/projects?action=share&source=collection_link&creator=33964087"
+	},
+	"item": [
+		{
+			"name": "Get all projects in Org",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Employee Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{local_url}}/projects/",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"projects",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a specific project by ID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Employee Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{local_url}}/projects/07d10843-e8bc-4847-b58e-d0e966b501a5",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"projects",
+						"07d10843-e8bc-4847-b58e-d0e966b501a5"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create a new project",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Employee Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"first-project\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/projects/",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"projects",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update a project",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Admin Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"changedName\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/projects/07d10843-e8bc-4847-b58e-d0e966b501a5",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"projects",
+						"07d10843-e8bc-4847-b58e-d0e966b501a5"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete a project",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Admin Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"changedName\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/projects/07d10843-e8bc-4847-b58e-d0e966b501a5",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"projects",
+						"07d10843-e8bc-4847-b58e-d0e966b501a5"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,105 @@
+{
+	"info": {
+		"_postman_id": "01f64da0-cdaa-4e50-9044-5bed63c2e903",
+		"name": "MANAGE",
+		"description": "## Admin User Management Routes\n\nBase path: `/api/manage`\n\n### Auth\n- Requires header `Authorization: Bearer <JWT>`\n- Caller must be org `ADMIN`\n- Tenant context is enforced by middleware\n\n### Endpoints\n\n#### GET `/users`\n- Purpose: List all users in the admin's organization\n\n#### PATCH `/users/:userId/role`\n- Purpose: Change a user's role within the organization\n- Body:\n```json\n{ \"newRole\": \"MANAGER\" }\n```\n- Allowed values: `MANAGER`, `EMPLOYEE`\n\n#### DELETE `/users/:userId`\n- Purpose: Remove a user from the organization\n\n### Notes\n- All operations are restricted to the admin's organization\n- Input validation errors return HTTP 400; forbidden actions return 403\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33964087",
+		"_collection_link": "https://www.postman.com/spaceflight-participant-49702036/tenantshield/collection/tl5u7yu/manage?action=share&source=collection_link&creator=33964087"
+	},
+	"item": [
+		{
+			"name": "Get all users in org (admin)",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Admin Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{local_url}}/manage/users",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"manage",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change role (admin)",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Admin Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"newRole\":\"MANAGER\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/manage/users/ff8fe213-64c0-4dd7-89fe-a779ddf1aefc/role",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"manage",
+						"users",
+						"ff8fe213-64c0-4dd7-89fe-a779ddf1aefc",
+						"role"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Change role (admin) Copy",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Admin Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"newRole\":\"MANAGER\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/manage/users/f8dd64cc-0cad-46ec-b207-bb6babf98a0a",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"manage",
+						"users",
+						"f8dd64cc-0cad-46ec-b207-bb6babf98a0a"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

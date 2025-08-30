@@ -1,0 +1,159 @@
+{
+	"info": {
+		"_postman_id": "a4cd25f4-6de5-4034-b98b-6819568d474e",
+		"name": "Example PROJECTS (with API)",
+		"description": "## Using API Keys with Project Routes\n\nThis guide shows how to call `/api/projects` using an API key instead of a JWT.\n\n### 1) Create an API key (Admin only)\n- Endpoint: `POST /api/manage-keys`\n- Auth: `Authorization: Bearer <JWT>` (Admin)\n- Body example:\n```json\n{ \"name\": \"CI key\", \"expiresInHours\": 72 }\n```\n- Response includes `data.apiKey` once. Store it securely.\n\n### 2) Send requests with the API key\nProject routes support flexible auth: either JWT or API key.\n\n- Header format for API key:\n```\nAuthorization: ApiKey <YOUR_API_KEY>\n```\n\n- Do NOT use `x-api-key`. The server expects `Authorization: ApiKey <...>`.\n\n#### Examples\n\n- List projects\n```bash\ncurl -X GET http://localhost:3000/api/projects \\\n  -H \"Authorization: ApiKey <YOUR_API_KEY>\"\n```\n\n- Get a project by id\n```bash\ncurl -X GET http://localhost:3000/api/projects/<projectId> \\\n  -H \"Authorization: ApiKey <YOUR_API_KEY>\"\n```\n\n- Create a project (API key allowed)\n```bash\ncurl -X POST http://localhost:3000/api/projects \\\n  -H \"Authorization: ApiKey <YOUR_API_KEY>\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{ \"name\": \"Website Redesign\" }'\n```\n\n- Update a project\n```bash\ncurl -X PUT http://localhost:3000/api/projects/<projectId> \\\n  -H \"Authorization: ApiKey <YOUR_API_KEY>\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{ \"name\": \"New Name\" }'\n```\n\n- Delete a project\n```bash\ncurl -X DELETE http://localhost:3000/api/projects/<projectId> \\\n  -H \"Authorization: ApiKey <YOUR_API_KEY>\"\n```\n\n### 3) Postman usage\n- Add an environment variable `apiKey` with your key value.\n- At the collection or folder level, add a Pre-request Script:\n```js\nconst key = pm.environment.get('apiKey');\nif (key) {\n  pm.request.headers.upsert({ key: 'Authorization', value: `ApiKey ${key}` });\n}\n```\n\n### Behavior and errors\n- Missing header → `401` with message: `Authorization header required. Use Bearer <jwt-token> or ApiKey <api-key>`\n- Wrong header format → `401` with message: `Invalid authorization format. Use Bearer <jwt-token> or ApiKey <api-key>`\n- Invalid/expired key → `401` with message: `Invalid or expired API key`\n\n### Security notes\n- API keys are tenant-scoped; they cannot access data outside your organization.\n- Rotate or revoke keys with `/api/manage-keys/:keyId/rotate` and `/api/manage-keys/:keyId/revoke`.\n- Treat keys like passwords: store securely and avoid committing to source control.\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33964087",
+		"_collection_link": "https://www.postman.com/spaceflight-participant-49702036/tenantshield/collection/xw1ctq5/example-projects-with-api?action=share&source=collection_link&creator=33964087"
+	},
+	"item": [
+		{
+			"name": "Get all projects in Org",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "ApiKey {{api_key}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{local_url}}/projects/",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"projects",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a specific project by ID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "ApiKey {{api_key}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{local_url}}/projects/3be625e5-ab7c-43ed-97c6-f12858f165cc",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"projects",
+						"3be625e5-ab7c-43ed-97c6-f12858f165cc"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create a new project",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "ApiKey {{api_key}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"first-project\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/projects/",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"projects",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update a project",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "ApiKey {{api_key}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"changedName\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/projects/cfa23cba-71d0-486e-9bc4-6301711d0afa",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"projects",
+						"cfa23cba-71d0-486e-9bc4-6301711d0afa"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete a project",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Admin Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"changedName\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/projects/cfa23cba-71d0-486e-9bc4-6301711d0afa",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"projects",
+						"cfa23cba-71d0-486e-9bc4-6301711d0afa"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -1,0 +1,170 @@
+{
+	"info": {
+		"_postman_id": "77ad154e-8836-497c-a1d3-65ec8ebf35bb",
+		"name": "MANAGE-KEYS",
+		"description": "## API Key Management Routes\n\nBase path: `/api/manage-keys`\n\n### Auth\n- Requires header `Authorization: Bearer <JWT>`\n- Caller must be org `ADMIN`\n- Rate-limited for abuse protection\n\n### Endpoints\n\n#### POST `/`\n- Purpose: Create a new API key for the organization\n- Body:\n```json\n{ \"name\": \"CI key\", \"expiresInHours\": 72 }\n```\n- Success (201): Returns metadata and the full `apiKey` value only once\n- Notes: The server stores a hash; save the raw key client-side securely\n\n#### GET `/`\n- Purpose: List API keys for the organization\n- Returns masked key info and metadata (not the full raw key)\n\n#### PUT `/:keyId/revoke`\n- Purpose: Revoke (deactivate) an API key\n\n#### PUT `/:keyId/rotate`\n- Purpose: Rotate an API key; issues a new raw key value\n- Success: Returns new key value; store securely\n\n#### DELETE `/:keyId`\n- Purpose: Permanently delete an API key record\n\n### Using API keys\n- Include header `x-api-key: <API_KEY>` when calling eligible endpoints (e.g., `/api/projects`)\n- API keys are tenant-scoped and cannot access data outside the organization\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33964087",
+		"_collection_link": "https://www.postman.com/spaceflight-participant-49702036/tenantshield/collection/1jturh9/manage-keys?action=share&source=collection_link&creator=33964087"
+	},
+	"item": [
+		{
+			"name": "Create a new API key",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Admin Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"test\",\r\n    \"expiresInHours\":1\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/manage-keys/",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"manage-keys",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Revoke an API key (deactivate)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Admin Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"test\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/manage-keys/c3ce6feb-4bd9-4a59-a7c3-363709e10071/revoke",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"manage-keys",
+						"c3ce6feb-4bd9-4a59-a7c3-363709e10071",
+						"revoke"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Rotate an API key (generate new key)",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Admin Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"test\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/manage-keys/728de88f-a324-4170-99ed-0204b434fed4/rotate",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"manage-keys",
+						"728de88f-a324-4170-99ed-0204b434fed4",
+						"rotate"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete an API key permanently",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Admin Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\":\"test\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local_url}}/manage-keys/d70120a1-f775-44f5-8d03-b5b82902c74f",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"manage-keys",
+						"d70120a1-f775-44f5-8d03-b5b82902c74f"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all API keys",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{Admin Bearer Token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{local_url}}/manage-keys/",
+					"host": [
+						"{{local_url}}"
+					],
+					"path": [
+						"manage-keys",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
