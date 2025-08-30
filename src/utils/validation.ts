@@ -79,6 +79,13 @@ const validateProjectId = (): ValidationChain => {
     .withMessage('Invalid project ID format');
 };
 
+// UUID validation for user ID
+const validateUserId = (): ValidationChain => {
+  return param('userId')
+    .isUUID()
+    .withMessage('Invalid user ID format');
+};
+
 // Project creation validation rules
 const validateCreateProject = (): ValidationChain[] => {
   return [
@@ -107,6 +114,13 @@ const validateProjectIdParam = (): ValidationChain[] => {
   ];
 };
 
+// User ID validation rules
+const validateUserIdParam = (): ValidationChain[] => {
+  return [
+    validateUserId(),
+  ];
+};
+
 const validationUtils = {
   validateEmail,
   validatePassword,
@@ -115,9 +129,11 @@ const validationUtils = {
   validateLogin,
   validateProjectName,
   validateProjectId,
+  validateUserId,
   validateCreateProject,
   validateUpdateProject,
   validateProjectIdParam,
+  validateUserIdParam,
   createSlug,
 };
 export { validationUtils };

@@ -3,6 +3,7 @@ import { body } from 'express-validator';
 import { OrgRole } from '@prisma/client';
 import { adminController } from '../controllers/adminController/index.ts';
 import { authMiddleware } from '../middleware/auth.ts';
+import { validationUtils } from '../utils/validation.ts';
 
 const router = Router();
 
@@ -11,14 +12,14 @@ router.use(authMiddleware.authenticate);
 router.use(authMiddleware.adminOnly);
 
 /**
- * @route   GET /api/admin/users
+ * @route   GET /api/manage/users
  * @desc    Get all users in the admin's organization
  * @access  Admin only
  */
 router.get('/users', adminController.getOrganizationUsers);
 
 /**
- * @route   PATCH /api/admin/users/:userId/role
+ * @route   PATCH /api/manage/users/:userId/role
  * @desc    Change a user's role within the organization
  * @access  Admin only
  * @body    { newRole: OrgRole }
@@ -34,6 +35,17 @@ router.patch('/users/:userId/role',
     req.body.userId = req.params.userId;
     adminController.changeUserRole(req, res);
   }
+);
+
+/**
+ * @route   DELETE /api/manage/users/:userId
+ * @desc    Delete a user from the organization
+ * @access  Admin only
+ */
+router.delete(
+  '/users/:userId',
+  validationUtils.validateUserIdParam(),
+  adminController.deleteUser
 );
 
 export default router;

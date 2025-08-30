@@ -1,16 +1,10 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import { OrgRole } from '@prisma/client';
 import prisma from '../../config/prisma.ts';
 import { JWTPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
 
-interface ChangeUserRoleRequest {
-  userId: string;
-  newRole: OrgRole;
-}
-
-export const changeUserRole = async (req: Request, res: Response): Promise<void> => {
+export const deleteUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -26,12 +20,28 @@ export const changeUserRole = async (req: Request, res: Response): Promise<void>
     }
 
     const admin: JWTPayload = (req as any).user;
-    const { userId, newRole }: ChangeUserRoleRequest = req.body;
+    const { userId } = req.params;
 
-    // Find the target user
+    if (userId === admin.userId) {
+      res.status(400).json({
+        success: false,
+        message: 'You cannot delete your own account',
+      } as ApiResponse);
+      return;
+    }
+
     const targetUser = await prisma.user.findUnique({
       where: { id: userId },
-      include: { organization: true },
+      include: { 
+        organization: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            ownerId: true,
+          }
+        }
+      },
     });
 
     if (!targetUser) {
@@ -41,51 +51,48 @@ export const changeUserRole = async (req: Request, res: Response): Promise<void>
       } as ApiResponse);
       return;
     }
-    if (userId === admin.userId) {
-      res.status(400).json({
-        success: false,
-        message: 'You cannot change your own role',
-      } as ApiResponse);
-      return;
-    }
 
-    // Ensure the target user is in the same organization as the admin
     if (targetUser.organizationId !== admin.organizationId) {
       res.status(403).json({
         success: false,
-        message: 'Cannot modify users from other organizations',
+        message: 'Cannot delete users from other organizations',
       } as ApiResponse);
       return;
     }
 
-    // Update the user's role
-    const updatedUser = await prisma.user.update({
+    if (targetUser.organization.ownerId === userId) {
+      res.status(400).json({
+        success: false,
+        message: 'Cannot delete the organization owner. Transfer ownership first.',
+      } as ApiResponse);
+      return;
+    }
+
+    const deletedUserInfo = {
+      id: targetUser.id,
+      email: targetUser.email,
+      role: targetUser.role,
+      organizationId: targetUser.organizationId,
+    };
+
+    await prisma.user.delete({
       where: { id: userId },
-      data: { role: newRole },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
     });
 
     res.status(200).json({
       success: true,
-      message: `User role successfully changed to ${newRole}`,
+      message: 'User and their created projects deleted successfully',
       data: {
-        user: updatedUser,
+        deletedUser: deletedUserInfo,
       },
     } as ApiResponse);
 
   } catch (error) {
-    console.error('Error in changeUserRole:', error);
+    console.error('Error in deleteUser:', error);
     res.status(500).json({
       success: false,
-      message: 'Internal server error while changing user role',
+      message: 'Internal server error while deleting user',
       error: process.env.NODE_ENV === 'development' ? String(error) : undefined,
     } as ApiResponse);
   }
 };
-
