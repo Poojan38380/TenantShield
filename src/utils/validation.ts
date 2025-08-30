@@ -1,4 +1,4 @@
-import { body, ValidationChain } from 'express-validator';
+import { body, param, ValidationChain } from 'express-validator';
 
 // Email validation
 const validateEmail = (): ValidationChain => {
@@ -62,12 +62,62 @@ const createSlug = (name: string): string => {
     .replace(/^-|-$/g, '');
 };
 
+// Project name validation
+const validateProjectName = (): ValidationChain => {
+  return body('name')
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Project name must be between 1 and 100 characters')
+    .matches(/^[a-zA-Z0-9\s\-_.]+$/)
+    .withMessage('Project name can only contain letters, numbers, spaces, hyphens, underscores, and periods')
+    .trim();
+};
+
+// UUID validation for project ID
+const validateProjectId = (): ValidationChain => {
+  return param('projectId')
+    .isUUID()
+    .withMessage('Invalid project ID format');
+};
+
+// Project creation validation rules
+const validateCreateProject = (): ValidationChain[] => {
+  return [
+    validateProjectName(),
+  ];
+};
+
+// Project update validation rules
+const validateUpdateProject = (): ValidationChain[] => {
+  return [
+    validateProjectId(),
+    body('name')
+      .optional()
+      .isLength({ min: 1, max: 100 })
+      .withMessage('Project name must be between 1 and 100 characters')
+      .matches(/^[a-zA-Z0-9\s\-_.]+$/)
+      .withMessage('Project name can only contain letters, numbers, spaces, hyphens, underscores, and periods')
+      .trim(),
+  ];
+};
+
+// Project ID validation rules
+const validateProjectIdParam = (): ValidationChain[] => {
+  return [
+    validateProjectId(),
+  ];
+};
+
 const validationUtils = {
   validateEmail,
   validatePassword,
   validateOrganizationName,
   validateRegistration,
   validateLogin,
+  validateProjectName,
+  validateProjectId,
+  validateCreateProject,
+  validateUpdateProject,
+  validateProjectIdParam,
   createSlug,
 };
 export { validationUtils };

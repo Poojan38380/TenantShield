@@ -2,6 +2,7 @@ import express from "express";
 import { env } from "./config/env.ts";
 import authRoutes from "./routes/authRoutes.ts";
 import userManagementRoutes from "./routes/userManagementRoutes.ts";
+import projectRoutes from "./routes/projectRoutes.ts";
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/manage", userManagementRoutes);
+app.use("/api/projects", projectRoutes);
 
 app.get("/", (req, res) => {
     res.json({ 
@@ -19,7 +21,8 @@ app.get("/", (req, res) => {
         version: "1.0.0",
         endpoints: {
             auth: "/api/auth",
-            admin: "/api/admin"
+            admin: "/api/manage",
+            projects: "/api/projects"
         }
     });
 });
