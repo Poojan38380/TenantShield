@@ -37,7 +37,7 @@ model Organization {
   users    User[]
   projects Project[]
   apiKeys  ApiKey[]
-
+  auditLogs AuditLog[]
   @@index([ownerId])
 }
 
@@ -82,4 +82,33 @@ model ApiKey {
   @@index([organizationId])
   @@index([keyHash])
   @@index([createdById])
+}
+
+// Actor type for audit entries
+enum ActorType {
+  USER
+  API_KEY
+}
+
+// Persistent audit log for security and activity tracking
+model AuditLog {
+  id              String     @id @default(uuid())
+  organizationId  String?
+  actorType       ActorType
+  actorId         String
+  action          String
+  targetType      String?
+  targetId        String?
+  success         Boolean
+  ip              String?
+  userAgent       String?
+  metadata        Json?
+  createdAt       DateTime   @default(now())
+
+  organization    Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@index([organizationId])
+  @@index([actorType, actorId])
+  @@index([action])
+  @@index([createdAt])
 }
