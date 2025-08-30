@@ -5,19 +5,20 @@ import { authMiddleware } from '../middleware/auth.ts';
 
 const router = Router();
 
-router.use(authMiddleware.authenticate);
+// Use flexible authentication (supports both JWT and API keys)
+router.use(authMiddleware.authenticateFlexible);
 
 /**
  * @route   GET /api/projects
  * @desc    Get all projects for the authenticated user's organization
- * @access  Private (All authenticated users in the organization)
+ * @access  Private (All authenticated users in the organization or valid API key)
  */
 router.get('/', projectController.getProjects);
 
 /**
  * @route   GET /api/projects/:projectId
  * @desc    Get a specific project by ID (only if it belongs to user's organization)
- * @access  Private (All authenticated users in the organization)
+ * @access  Private (All authenticated users in the organization or valid API key)
  */
 router.get('/:projectId', validationUtils.validateProjectIdParam(), projectController.getProjectById);
 

@@ -1,0 +1,68 @@
+import { Request, Response } from 'express';
+import { validationResult } from 'express-validator';
+import prisma from '../../config/prisma.ts';
+import { JWTPayload } from '../../types/auth.ts';
+import { ApiResponse } from '../../types/api.ts';
+
+export const revokeApiKey = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array().map(err => ({
+          field: err.type === 'field' ? err.path : 'unknown',
+          message: err.msg,
+        })),
+      } as ApiResponse);
+      return;
+    }
+
+    const user: JWTPayload = (req as any).user;
+    const { keyId } = req.params;
+
+    const apiKey = await prisma.apiKey.findFirst({
+      where: {
+        id: keyId,
+        organizationId: user.organizationId,
+      }
+    });
+
+    if (!apiKey) {
+      res.status(404).json({
+        success: false,
+        message: 'API key not found or you do not have permission to revoke it'
+      });
+      return;
+    }
+
+    if (!apiKey.isActive) {
+      res.status(400).json({
+        success: false,
+        message: 'API key is already revoked'
+      });
+      return;
+    }
+
+    await prisma.apiKey.update({
+      where: { id: keyId },
+      data: { 
+        isActive: false,
+        updatedAt: new Date()
+      }
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'API key revoked successfully'
+    });
+
+  } catch (error) {
+    console.error('Error revoking API key:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error'
+    });
+  }
+};

@@ -1,15 +1,27 @@
 import { Request, Response } from 'express';
 import prisma from '../../config/prisma.ts';
-import { JWTPayload } from '../../types/auth.ts';
+import { JWTPayload, ApiKeyPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
 
 export const getProjects = async (req: Request, res: Response): Promise<void> => {
   try {
     const user: JWTPayload = (req as any).user;
+    const apiKey: ApiKeyPayload = (req as any).apiKey;
+    
+    // Get organization ID from either JWT user or API key
+    const organizationId = user?.organizationId || apiKey?.organizationId;
+    
+    if (!organizationId) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+      } as ApiResponse);
+      return;
+    }
 
     const projects = await prisma.project.findMany({
       where: {
-        organizationId: user.organizationId,
+        organizationId: organizationId,
       },
       include: {
         createdBy: {

@@ -121,6 +121,47 @@ const validateUserIdParam = (): ValidationChain[] => {
   ];
 };
 
+// API Key name validation
+const validateApiKeyName = (): ValidationChain => {
+  return body('name')
+    .isLength({ min: 1, max: 100 })
+    .withMessage('API key name must be between 1 and 100 characters')
+    .matches(/^[a-zA-Z0-9\s\-_.]+$/)
+    .withMessage('API key name can only contain letters, numbers, spaces, hyphens, underscores, and periods')
+    .trim();
+};
+
+// API Key expiration hours validation (optional)
+const validateApiKeyExpiration = (): ValidationChain => {
+  return body('expiresInHours')
+    .optional()
+    .isInt({ min: 1, max: 8760 }) // 1 hour to 1 year (365 * 24)
+    .withMessage('Expiration must be a number between 1 and 8760 hours (1 year)')
+    .toInt();
+};
+
+// UUID validation for API key ID
+const validateApiKeyId = (): ValidationChain => {
+  return param('keyId')
+    .isUUID()
+    .withMessage('Invalid API key ID format');
+};
+
+// API Key creation validation rules
+const validateCreateApiKey = (): ValidationChain[] => {
+  return [
+    validateApiKeyName(),
+    validateApiKeyExpiration(),
+  ];
+};
+
+// API Key ID parameter validation rules
+const validateApiKeyIdParam = (): ValidationChain[] => {
+  return [
+    validateApiKeyId(),
+  ];
+};
+
 const validationUtils = {
   validateEmail,
   validatePassword,
@@ -134,6 +175,11 @@ const validationUtils = {
   validateUpdateProject,
   validateProjectIdParam,
   validateUserIdParam,
+  validateApiKeyName,
+  validateApiKeyExpiration,
+  validateApiKeyId,
+  validateCreateApiKey,
+  validateApiKeyIdParam,
   createSlug,
 };
 export { validationUtils };
