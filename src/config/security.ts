@@ -1,5 +1,5 @@
 import rateLimit from 'express-rate-limit';
-import { env } from './env.ts';
+import { env } from './env.js';
 
 // Default rate limiter for general API requests
 export const defaultLimiter = rateLimit({

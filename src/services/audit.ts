@@ -1,6 +1,6 @@
 import { Request } from 'express';
-import prisma from '../config/prisma.ts';
-import { TenantContextRequest } from '../middleware/tenant.ts';
+import prisma from '../config/prisma.js';
+import { TenantContextRequest } from '../middleware/tenant.js';
 
 type ActorType = 'USER' | 'API_KEY';
 

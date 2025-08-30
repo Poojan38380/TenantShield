@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ApiResponse } from "../../types/api.ts";
+import { ApiResponse } from "../../types/api.js";
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
