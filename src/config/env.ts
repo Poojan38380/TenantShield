@@ -8,6 +8,7 @@ interface EnvConfig {
   NODE_ENV: 'development' | 'production' | 'test';
   JWT_SECRET: string;
   JWT_EXPIRES_IN: string;
+  CORS_ORIGINS: string;
 }
 
 const parseEnv = (): EnvConfig => {
@@ -17,6 +18,7 @@ const parseEnv = (): EnvConfig => {
     NODE_ENV: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
     JWT_SECRET: process.env.JWT_SECRET || '',
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '',
+    CORS_ORIGINS: process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:3001',
   };
 
   const required = ['DATABASE_URL','JWT_SECRET','JWT_EXPIRES_IN'];

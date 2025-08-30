@@ -1,5 +1,8 @@
 import express from "express";
+import helmet from "helmet";
+import cors from "cors";
 import { env } from "./config/env.ts";
+import { defaultLimiter, corsOptions, helmetOptions } from "./config/security.ts";
 import authRoutes from "./routes/authRoutes.ts";
 import userManagementRoutes from "./routes/userManagementRoutes.ts";
 import projectRoutes from "./routes/projectRoutes.ts";
@@ -7,7 +10,12 @@ import apiKeyRoutes from "./routes/apiKeyRoutes.ts";
 
 const app = express();
 
-// Middleware
+// Security Middleware
+app.use(helmet(helmetOptions));
+app.use(cors(corsOptions));
+app.use(defaultLimiter);
+
+// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
