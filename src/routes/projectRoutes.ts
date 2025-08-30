@@ -2,11 +2,13 @@ import { Router } from 'express';
 import { projectController } from '../controllers/projectController/index.ts';
 import { validationUtils } from '../utils/validation.ts';
 import { authMiddleware } from '../middleware/auth.ts';
+import { attachTenant } from '../middleware/tenant.ts';
 
 const router = Router();
 
 // Use flexible authentication (supports both JWT and API keys)
 router.use(authMiddleware.authenticateFlexible);
+router.use(attachTenant);
 
 /**
  * @route   GET /api/projects

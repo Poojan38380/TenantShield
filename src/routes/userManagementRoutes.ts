@@ -4,11 +4,13 @@ import { OrgRole } from '@prisma/client';
 import { adminController } from '../controllers/adminController/index.ts';
 import { authMiddleware } from '../middleware/auth.ts';
 import { validationUtils } from '../utils/validation.ts';
+import { attachTenant } from '../middleware/tenant.ts';
 
 const router = Router();
 
 // Require authentication and admin role
 router.use(authMiddleware.authenticate);
+router.use(attachTenant);
 router.use(authMiddleware.adminOnly);
 
 /**
