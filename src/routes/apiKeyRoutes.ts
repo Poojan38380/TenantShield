@@ -2,9 +2,13 @@ import { Router } from 'express';
 import { apiKeyController } from '../controllers/apiKeyController/index.ts';
 import { authMiddleware } from '../middleware/auth.ts';
 import { validationUtils } from '../utils/validation.ts';
+import { attachTenant } from '../middleware/tenant.ts';
+import { apiKeyManagementLimiter } from '../config/security.ts';
 
 const router = Router();
+router.use(apiKeyManagementLimiter);
 router.use(authMiddleware.authenticate);
+router.use(attachTenant);
 router.use(authMiddleware.adminOnly);
 /**
  * @route   POST /api/manage-keys

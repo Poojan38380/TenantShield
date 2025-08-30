@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authController } from '../controllers/authController/index.ts';
 import { validationUtils } from '../utils/validation.ts';
 import { authMiddleware } from '../middleware/auth.ts';
+import { loginLimiter, registerLimiter } from '../config/security.ts';
 
 const router = Router();
 
@@ -11,7 +12,7 @@ const router = Router();
  * @access  Public
  * @body    { email, password, organizationName }
  */
-router.post('/register', validationUtils.validateRegistration(), authController.register);
+router.post('/register', registerLimiter, validationUtils.validateRegistration(), authController.register);
 
 /**
  * @route   POST /api/auth/login
@@ -19,7 +20,7 @@ router.post('/register', validationUtils.validateRegistration(), authController.
  * @access  Public
  * @body    { email, password }
  */
-router.post('/login', validationUtils.validateLogin(), authController.login);
+router.post('/login', loginLimiter, validationUtils.validateLogin(), authController.login);
 
 //Only logged users can send request to logout.
 router.use(authMiddleware.authenticate);
