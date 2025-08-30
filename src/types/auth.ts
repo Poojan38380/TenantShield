@@ -20,6 +20,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   organizationName: string;
+  newOrg?: boolean;
 }
 
 // Login request body

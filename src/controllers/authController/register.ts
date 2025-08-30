@@ -31,7 +31,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         return;
       }
   
-      const { email, password, organizationName }: RegisterRequest = req.body;
+      const { email, password, organizationName, newOrg }: RegisterRequest = req.body;
   
       const existingUser = await prisma.user.findUnique({
         where: { email },
@@ -55,31 +55,55 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       const hashedPassword = await passwordUtils.hashPassword(password);
   
       const organizationSlug = validationUtils.createSlug(organizationName);
-  
-      let organization = await prisma.organization.findUnique({
+
+      const existingOrg = await prisma.organization.findUnique({
         where: { slug: organizationSlug },
       });
-  
-      let userRole: OrgRole;
-      let isNewOrganization = false;
-  
-      if (!organization) {
-        userRole = OrgRole.ADMIN;
-        isNewOrganization = true;
-      } else {
-        userRole = OrgRole.EMPLOYEE;
+
+      let isNewOrganization = Boolean(newOrg);
+
+      // If user explicitly wants to create a new organization but name exists
+      if (isNewOrganization && existingOrg) {
+        await logAudit(req, {
+          action: 'ORGANIZATION_NAME_CONFLICT',
+          success: false,
+          targetType: 'Organization',
+          targetId: existingOrg.id,
+          metadata: { name: organizationName, slug: organizationSlug },
+        });
+        res.status(409).json({
+          success: false,
+          message: 'Organization name already exists. Please choose a different name.',
+        } as ApiResponse);
+        return;
       }
-  
+
+      // If user is joining an existing org but it doesn't exist
+      if (!isNewOrganization && !existingOrg) {
+        await logAudit(req, {
+          action: 'ORGANIZATION_NOT_FOUND_FOR_JOIN',
+          success: false,
+          targetType: 'Organization',
+          targetId: 'unknown',
+          metadata: { name: organizationName, slug: organizationSlug },
+        });
+        res.status(404).json({
+          success: false,
+          message: 'Organization does not exist. Pass newOrg=true to create it.',
+        } as ApiResponse);
+        return;
+      }
+
       const result = await prisma.$transaction(async (tx) => {
         if (isNewOrganization) {
-          organization = await tx.organization.create({
+          let organization = await tx.organization.create({
             data: {
               name: organizationName,
               slug: organizationSlug,
-              ownerId: '', // Temporary
+              ownerId: '',
             },
           });
-  
+
           const newUser = await tx.user.create({
             data: {
               email,
@@ -88,25 +112,24 @@ export const register = async (req: Request, res: Response): Promise<void> => {
               role: OrgRole.ADMIN,
             },
           });
-  
-          // Update organization with the real owner ID
+
           organization = await tx.organization.update({
             where: { id: organization.id },
             data: { ownerId: newUser.id },
           });
-  
+
           return { user: newUser, organization };
         } else {
           const newUser = await tx.user.create({
             data: {
               email,
               password: hashedPassword,
-              organizationId: organization!.id,
+              organizationId: existingOrg!.id,
               role: OrgRole.EMPLOYEE,
             },
           });
-  
-          return { user: newUser, organization: organization! };
+
+          return { user: newUser, organization: existingOrg! };
         }
       });
   
@@ -114,7 +137,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       const token = generateToken({
         userId: result.user.id,
         email: result.user.email,
-        role: userRole,
+        role: result.user.role,
         organizationId: result.organization.id,
       });
   
@@ -126,7 +149,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         organizationId: result.organization.id,
         actorType: 'USER',
         actorId: result.user.id,
-        metadata: { email: result.user.email, role: userRole, isNewOrganization },
+        metadata: { email: result.user.email, role: result.user.role, isNewOrganization },
       });
 
       if (isNewOrganization) {
@@ -152,7 +175,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
           user: {
             id: result.user.id,
             email: result.user.email,
-            role: userRole,
+            role: result.user.role,
             organization: {
               id: result.organization.id,
               name: result.organization.name,

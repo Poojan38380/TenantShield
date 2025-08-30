@@ -35,6 +35,11 @@ const validateRegistration = (): ValidationChain[] => {
     validateEmail(),
     validatePassword(),
     validateOrganizationName(),
+    body('newOrg')
+      .optional()
+      .isBoolean()
+      .withMessage('newOrg must be a boolean')
+      .toBoolean(),
   ];
 };
 

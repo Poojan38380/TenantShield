@@ -10,7 +10,7 @@ const router = Router();
  * @route   POST /api/auth/register
  * @desc    Register a new user with organization
  * @access  Public
- * @body    { email, password, organizationName }
+ * @body    { email, password, organizationName, newOrg?: boolean }
  */
 router.post('/register', registerLimiter, validationUtils.validateRegistration(), authController.register);
 
