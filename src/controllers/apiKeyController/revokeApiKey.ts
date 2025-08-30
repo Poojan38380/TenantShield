@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.ts';
 import { JWTPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
+import { logAudit } from '../../services/audit.ts';
 
 export const revokeApiKey = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -53,6 +54,16 @@ export const revokeApiKey = async (req: Request, res: Response): Promise<void> =
       }
     });
 
+    await logAudit(req, {
+      action: 'API_KEY_REVOKED',
+      success: true,
+      targetType: 'ApiKey',
+      targetId: keyId,
+      organizationId: user.organizationId,
+      actorType: 'USER',
+      actorId: user.userId,
+    });
+
     res.status(200).json({
       success: true,
       message: 'API key revoked successfully'
@@ -60,6 +71,13 @@ export const revokeApiKey = async (req: Request, res: Response): Promise<void> =
 
   } catch (error) {
     console.error('Error revoking API key:', error);
+    await logAudit(req, {
+      action: 'API_KEY_REVOKE_FAILED',
+      success: false,
+      targetType: 'ApiKey',
+      targetId: (req.params as any).keyId,
+      metadata: { error: String(error) },
+    });
     res.status(500).json({
       success: false,
       message: 'Internal server error'

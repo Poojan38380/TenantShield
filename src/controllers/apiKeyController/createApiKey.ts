@@ -4,6 +4,7 @@ import prisma from '../../config/prisma.ts';
 import { generateApiKey, hashApiKey, maskApiKey } from '../../utils/apiKey.ts';
 import { JWTPayload, CreateApiKeyRequest, CreateApiKeyResponse } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
+import { logAudit } from '../../services/audit.ts';
 
 export const createApiKey = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -80,6 +81,17 @@ export const createApiKey = async (req: Request, res: Response): Promise<void> =
       createdBy: newApiKey.createdBy,
     };
 
+    await logAudit(req, {
+      action: 'API_KEY_CREATED',
+      success: true,
+      targetType: 'ApiKey',
+      targetId: newApiKey.id,
+      metadata: { name: newApiKey.name, expiresAt: newApiKey.expiresAt },
+      organizationId: user.organizationId,
+      actorType: 'USER',
+      actorId: user.userId,
+    });
+
     res.status(201).json({
       success: true,
       message: 'API key created successfully',
@@ -88,6 +100,13 @@ export const createApiKey = async (req: Request, res: Response): Promise<void> =
 
   } catch (error) {
     console.error('Error in createApiKey function in apiKeyController.ts:', error);
+    await logAudit(req, {
+      action: 'API_KEY_CREATE_FAILED',
+      success: false,
+      targetType: 'ApiKey',
+      targetId: 'unknown',
+      metadata: { error: String(error) },
+    });
     res.status(500).json({
       success: false,
       message: 'Internal server error'

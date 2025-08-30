@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.ts';
 import { JWTPayload, ApiKeyPayload } from '../../types/auth.ts';
 import { ApiResponse } from '../../types/api.ts';
+import { logAudit } from '../../services/audit.ts';
 
 interface CreateProjectRequest {
   name: string;
@@ -116,6 +117,17 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
       },
     });
 
+    await logAudit(req, {
+      action: 'PROJECT_CREATED',
+      success: true,
+      targetType: 'Project',
+      targetId: project.id,
+      organizationId: organizationId,
+      actorType: user ? 'USER' : 'API_KEY',
+      actorId: (user?.userId || apiKey?.keyId)!,
+      metadata: { name: project.name },
+    });
+
     res.status(201).json({
       success: true,
       message: 'Project created successfully',
@@ -126,6 +138,13 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
 
   } catch (error) {
     console.error('Error in createProject:', error);
+    await logAudit(req, {
+      action: 'PROJECT_CREATE_FAILED',
+      success: false,
+      targetType: 'Project',
+      targetId: 'unknown',
+      metadata: { error: String(error) },
+    });
     res.status(500).json({
       success: false,
       message: 'Internal server error while creating project',
