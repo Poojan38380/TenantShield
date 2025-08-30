@@ -23,13 +23,11 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Handle both JWT and API key authentication
     const user: JWTPayload = (req as any).user;
     const apiKey: ApiKeyPayload = (req as any).apiKey;
     const { projectId } = req.params;
     const { name }: UpdateProjectRequest = req.body;
 
-    // Get organization ID from either JWT user or API key
     const organizationId = user?.organizationId || apiKey?.organizationId;
     
     if (!organizationId) {
@@ -38,6 +36,33 @@ export const updateProject = async (req: Request, res: Response): Promise<void> 
         message: 'Authentication required',
       } as ApiResponse);
       return;
+    }
+
+    if (user) {
+      // check user role
+      if (user.role === 'EMPLOYEE') {
+        res.status(403).json({
+          success: false,
+          message: 'Only Admins and Managers can update projects',
+        } as ApiResponse);
+        return;
+      }
+    } else if (apiKey) {
+      // verify the creator exists
+      const apiKeyCreator = await prisma.user.findFirst({
+        where: {
+          id: apiKey.createdById,
+          organizationId: organizationId,
+        }
+      });
+
+      if (!apiKeyCreator) {
+        res.status(401).json({
+          success: false,
+          message: 'API key creator no longer exists or does not belong to the organization',
+        } as ApiResponse);
+        return;
+      }
     }
 
     const existingProject = await prisma.project.findFirst({

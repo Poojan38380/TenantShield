@@ -35,6 +35,34 @@ export const deleteProject = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // Role-based access control
+    if (user) {
+      // JWT authentication - check user role
+      if (user.role === 'EMPLOYEE') {
+        res.status(403).json({
+          success: false,
+          message: 'Only Admins and Managers can delete projects',
+        } as ApiResponse);
+        return;
+      }
+    } else if (apiKey) {
+      // API key authentication - verify the creator exists
+      const apiKeyCreator = await prisma.user.findFirst({
+        where: {
+          id: apiKey.createdById,
+          organizationId: organizationId,
+        }
+      });
+
+      if (!apiKeyCreator) {
+        res.status(401).json({
+          success: false,
+          message: 'API key creator no longer exists or does not belong to the organization',
+        } as ApiResponse);
+        return;
+      }
+    }
+
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,

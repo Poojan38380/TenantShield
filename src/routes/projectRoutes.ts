@@ -25,7 +25,7 @@ router.get('/:projectId', validationUtils.validateProjectIdParam(), projectContr
 /**
  * @route   POST /api/projects
  * @desc    Create a new project in the authenticated user's organization
- * @access  Private (Admin and Manager only for JWT, any valid API key)
+ * @access  Private (Admin and Manager roles only, or valid API key)
  * @body    { name }
  */
 router.post(
@@ -37,7 +37,7 @@ router.post(
 /**
  * @route   PUT /api/projects/:projectId
  * @desc    Update a project (only if it belongs to user's organization)
- * @access  Private (Admin and Manager only)
+ * @access  Private (Admin and Manager roles only, or valid API key)
  * @body    { name? }
  */
 router.put(
@@ -49,7 +49,7 @@ router.put(
 /**
  * @route   DELETE /api/projects/:projectId
  * @desc    Delete a project (only if it belongs to user's organization)
- * @access  Private (Admin and Manager only for JWT, any valid API key)
+ * @access  Private (Admin and Manager roles only, or valid API key)
  */
 router.delete(
   '/:projectId',

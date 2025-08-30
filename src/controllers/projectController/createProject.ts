@@ -23,16 +23,51 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Handle both JWT and API key authentication
     const user: JWTPayload = (req as any).user;
     const apiKey: ApiKeyPayload = (req as any).apiKey;
     const { name }: CreateProjectRequest = req.body;
 
-    // Get organization ID and creator ID from either JWT user or API key
     const organizationId = user?.organizationId || apiKey?.organizationId;
-    const createdById = user?.userId || apiKey?.createdById;
+    let createdById = user?.userId || apiKey?.createdById;
     
-    if (!organizationId || !createdById) {
+    if (!organizationId) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+      } as ApiResponse);
+      return;
+    }
+
+    if (user) {
+      // check user role
+      if (user.role === 'EMPLOYEE') {
+        res.status(403).json({
+          success: false,
+          message: 'Only Admins and Managers can create projects',
+        } as ApiResponse);
+        return;
+      }
+      createdById = user.userId;
+    } else if (apiKey) {
+      // verify the creator exists and get their info
+      const apiKeyCreator = await prisma.user.findFirst({
+        where: {
+          id: apiKey.createdById,
+          organizationId: organizationId,
+        }
+      });
+
+      if (!apiKeyCreator) {
+        res.status(401).json({
+          success: false,
+          message: 'API key creator no longer exists or does not belong to the organization',
+        } as ApiResponse);
+        return;
+      }
+      createdById = apiKeyCreator.id;
+    }
+
+    if (!createdById) {
       res.status(401).json({
         success: false,
         message: 'Authentication required',
