@@ -47,24 +47,28 @@ export const createApiKey = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const apiKey = generateApiKey();
-    const keyHash = await hashApiKey(apiKey);
-
-    const newApiKey = await prisma.apiKey.create({
+    // Generate key bound to created record id to allow O(1) verification later
+    const stub = await prisma.apiKey.create({
       data: {
         name: name.trim(),
-        keyHash,
+        keyHash: 'placeholder',
         organizationId: user.organizationId,
         createdById: user.userId,
         expiresAt: expirationDate,
       },
       include: {
-        createdBy: {
-          select: {
-            id: true,
-            email: true,
-          }
-        }
+        createdBy: { select: { id: true, email: true } }
+      }
+    });
+
+    const apiKey = generateApiKey(stub.id);
+    const keyHash = await hashApiKey(apiKey);
+
+    const newApiKey = await prisma.apiKey.update({
+      where: { id: stub.id },
+      data: { keyHash },
+      include: {
+        createdBy: { select: { id: true, email: true } }
       }
     });
 

@@ -3,7 +3,7 @@ import { OrgRole } from '@prisma/client';
 import { verifyToken } from '../config/jwt.js';
 import { JWTPayload, ApiKeyPayload } from '../types/auth.js';
 import prisma from '../config/prisma.js';
-import { verifyApiKey, isValidApiKeyFormat } from '../utils/apiKey.js';
+import { verifyApiKey, isValidApiKeyFormat, parseApiKey } from '../utils/apiKey.js';
 import { logAudit } from '../services/audit.js';
 
 // Extract Bearer token from Authorization header
@@ -116,38 +116,39 @@ const authenticateApiKey = async (req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    // Find all API keys to check against (we need to hash and compare)
-    const apiKeys = await prisma.apiKey.findMany({
-      where: {
-        isActive: true,
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } }
-        ]
-      },
-      include: {
-        organization: {
-          select: {
-            id: true,
-            name: true,
-          }
-        },
-        createdBy: {
-          select: {
-            id: true,
-            email: true,
-          }
+    // Prefer O(1) lookup using embedded id in new-format keys
+    const parsed = parseApiKey(apiKeyValue);
+    let matchedApiKey = null as any;
+    if (parsed.id) {
+      const candidate = await prisma.apiKey.findUnique({
+        where: { id: parsed.id },
+        include: {
+          organization: { select: { id: true, name: true } },
+          createdBy: { select: { id: true, email: true } },
         }
-      }
-    });
+      });
 
-    // Find matching API key by verifying hash
-    let matchedApiKey = null;
-    for (const apiKey of apiKeys) {
-      const isValid = await verifyApiKey(apiKeyValue, apiKey.keyHash);
-      if (isValid) {
-        matchedApiKey = apiKey;
-        break;
+      if (!candidate || !candidate.isActive || (candidate.expiresAt && candidate.expiresAt <= new Date())) {
+        // fall through to invalid
+      } else {
+        const ok = await verifyApiKey(apiKeyValue, candidate.keyHash);
+        if (ok) matchedApiKey = candidate;
+      }
+    } else {
+      // Legacy fallback: O(n) scan for old-format keys
+      const apiKeys = await prisma.apiKey.findMany({
+        where: {
+          isActive: true,
+          OR: [ { expiresAt: null }, { expiresAt: { gt: new Date() } } ]
+        },
+        include: {
+          organization: { select: { id: true, name: true } },
+          createdBy: { select: { id: true, email: true } },
+        }
+      });
+      for (const apiKey of apiKeys) {
+        const isValid = await verifyApiKey(apiKeyValue, apiKey.keyHash);
+        if (isValid) { matchedApiKey = apiKey; break; }
       }
     }
 

@@ -2,13 +2,12 @@ import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 
 /**
- * Generates a cryptographically secure API key
- * Format: ts_[32 random hex chars]
+ * Generates a cryptographically secure API key bound to a specific id (UUID).
+ * New format: ts_<id(uuid)>_<64 hex secret>
  */
-export const generateApiKey = (): string => {
-  const randomBytes = crypto.randomBytes(32);
-  const apiKey = `ts_${randomBytes.toString('hex')}`;
-  return apiKey;
+export const generateApiKey = (id: string): string => {
+  const secret = crypto.randomBytes(32).toString('hex');
+  return `ts_${id}_${secret}`;
 };
 
 /**
@@ -30,9 +29,29 @@ export const verifyApiKey = async (apiKey: string, hash: string): Promise<boolea
  * Validates API key format
  */
 export const isValidApiKeyFormat = (apiKey: string): boolean => {
-  // ts_[64 hex chars]
-  const apiKeyRegex = /^ts_[a-f0-9]{64}$/i;
-  return apiKeyRegex.test(apiKey);
+  // New: ts_<uuid>_<64 hex> 
+  const newFmt = /^ts_[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}_[a-f0-9]{64}$/i;
+  const legacyFmt = /^ts_[a-f0-9]{64}$/i;
+  return newFmt.test(apiKey) || legacyFmt.test(apiKey);
+};
+
+/**
+ * Parses an API key. Returns id for new format, undefined for legacy.
+ */
+export const parseApiKey = (
+  apiKey: string
+): { id?: string; secret?: string; isLegacy: boolean } => {
+  const newFmt = /^ts_([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})_([a-f0-9]{64})$/i;
+  const m = apiKey.match(newFmt);
+  if (m) {
+    return { id: m[1], secret: m[2], isLegacy: false };
+  }
+  const legacyFmt = /^ts_([a-f0-9]{64})$/i;
+  const m2 = apiKey.match(legacyFmt);
+  if (m2) {
+    return { secret: m2[1], isLegacy: true };
+  }
+  return { isLegacy: false };
 };
 
 /**

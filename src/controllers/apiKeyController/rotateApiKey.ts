@@ -48,7 +48,7 @@ export const rotateApiKey = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const newApiKey = generateApiKey();
+    const newApiKey = generateApiKey(existingApiKey.id);
     const newKeyHash = await hashApiKey(newApiKey);
 
     const updatedApiKey = await prisma.apiKey.update({
