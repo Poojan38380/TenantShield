@@ -33,5 +33,5 @@ Base path: `/api/manage-keys`
 - Purpose: Permanently delete an API key record
 
 ### Using API keys
-- Include header `x-api-key: <API_KEY>` when calling eligible endpoints (e.g., `/api/projects`)
+- Use header `Authorization: ApiKey <API_KEY>` when calling eligible endpoints (e.g., `/api/projects`)
 - API keys are tenant-scoped and cannot access data outside the organization

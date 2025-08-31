@@ -3,7 +3,7 @@
 Base path: `/api/projects`
 
 ### Auth
-- Supports either: `Authorization: Bearer <JWT>` OR header `x-api-key: <API_KEY>`
+- Supports either: `Authorization: Bearer <JWT>` OR `Authorization: ApiKey <API_KEY>`
 - All requests are tenant-scoped via middleware
 - Role requirements:
   - Read (GET): Any authenticated user or valid API key

@@ -133,7 +133,7 @@ Use the returned token in the `Authorization: Bearer <JWT>` header for protected
 ### Projects
 Route prefix: `/api/projects`
 
-Authentication: Either `Authorization: Bearer <JWT>` OR `x-api-key: <API_KEY>`.
+Authentication: Either `Authorization: Bearer <JWT>` OR `Authorization: ApiKey <API_KEY>`.
 
 - List projects
 ```bash
@@ -144,7 +144,7 @@ curl http://localhost:3000/api/projects \
 - Get project by id
 ```bash
 curl http://localhost:3000/api/projects/<projectId> \
-  -H "x-api-key: <API_KEY>"
+  -H "Authorization: ApiKey <API_KEY>"
 ```
 
 - Create project (Admin/Manager or valid API key)
@@ -166,7 +166,7 @@ curl -X PUT http://localhost:3000/api/projects/<projectId> \
 - Delete project (Admin/Manager or valid API key)
 ```bash
 curl -X DELETE http://localhost:3000/api/projects/<projectId> \
-  -H "x-api-key: <API_KEY>"
+  -H "Authorization: ApiKey <API_KEY>"
 ```
 
 ### API Keys (Admin only)
@@ -206,7 +206,7 @@ curl -X DELETE http://localhost:3000/api/manage-keys/<keyId> \
   -H "Authorization: Bearer <JWT>"
 ```
 
-When calling project endpoints with an API key, supply it via header: `x-api-key: <API_KEY>`.
+When calling project endpoints with an API key, supply it via header: `Authorization: ApiKey <API_KEY>`.
 
 ### Admin: User Management
 Route prefix: `/api/manage`

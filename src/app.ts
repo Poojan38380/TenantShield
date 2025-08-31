@@ -43,7 +43,7 @@ app.get("/", (req, res) => {
             },
             projects: {
                 base: "/api/projects",
-                auth: "JWT or x-api-key",
+                auth: "JWT or ApiKey",
                 overview: [
                     { method: "GET", path: "/", desc: "List projects" },
                     { method: "GET", path: "/:projectId", desc: "Get project" },
@@ -75,7 +75,7 @@ app.get("/", (req, res) => {
         },
         authHeaders: {
             bearer: "Authorization: Bearer <JWT>",
-            apiKey: "x-api-key: <API_KEY>"
+            apiKey: "Authorization: ApiKey <API_KEY>"
         }
     });
 });
