@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.js';
 import { JWTPayload } from '../../types/auth.js';
+import { TenantContextRequest } from '../../middleware/tenant.js';
 import { ApiResponse } from '../../types/api.js';
 import { logAudit } from '../../services/audit.js';
 
@@ -21,6 +22,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
     }
 
     const admin: JWTPayload = (req as any).user;
+    const { tenantId } = req as TenantContextRequest;
     const { userId } = req.params;
 
     if (userId === admin.userId) {
@@ -53,7 +55,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    if (targetUser.organizationId !== admin.organizationId) {
+    if (targetUser.organizationId !== tenantId) {
       res.status(403).json({
         success: false,
         message: 'Cannot delete users from other organizations',
@@ -85,7 +87,7 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
       success: true,
       targetType: 'User',
       targetId: userId,
-      organizationId: admin.organizationId,
+      organizationId: tenantId!,
       actorType: 'USER',
       actorId: admin.userId,
       metadata: { deletedUserEmail: deletedUserInfo.email },

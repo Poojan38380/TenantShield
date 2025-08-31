@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.js';
 import { JWTPayload, ApiKeyPayload } from '../../types/auth.js';
+import { TenantContextRequest } from '../../middleware/tenant.js';
 import { ApiResponse } from '../../types/api.js';
 
 export const getProjectById = async (req: Request, res: Response): Promise<void> => {
@@ -19,13 +20,12 @@ export const getProjectById = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Handle both JWT and API key authentication
     const user: JWTPayload = (req as any).user;
     const apiKey: ApiKeyPayload = (req as any).apiKey;
+    const { tenantId } = req as TenantContextRequest;
     const { projectId } = req.params;
 
-    // Get organization ID from either JWT user or API key
-    const organizationId = user?.organizationId || apiKey?.organizationId;
+    const organizationId = tenantId;
     
     if (!organizationId) {
       res.status(401).json({
