@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import prisma from '../../config/prisma.js';
 import { JWTPayload, ApiKeyPayload } from '../../types/auth.js';
+import { TenantContextRequest } from '../../middleware/tenant.js';
 import { ApiResponse } from '../../types/api.js';
 import { logAudit } from '../../services/audit.js';
 
@@ -26,9 +27,10 @@ export const createProject = async (req: Request, res: Response): Promise<void> 
 
     const user: JWTPayload = (req as any).user;
     const apiKey: ApiKeyPayload = (req as any).apiKey;
+    const { tenantId } = req as TenantContextRequest;
     const { name }: CreateProjectRequest = req.body;
 
-    const organizationId = user?.organizationId || apiKey?.organizationId;
+    const organizationId = tenantId;
     let createdById = user?.userId || apiKey?.createdById;
     
     if (!organizationId) {

@@ -3,6 +3,7 @@ import { validationResult } from 'express-validator';
 import { OrgRole } from '@prisma/client';
 import prisma from '../../config/prisma.js';
 import { JWTPayload } from '../../types/auth.js';
+import { TenantContextRequest } from '../../middleware/tenant.js';
 import { ApiResponse } from '../../types/api.js';
 import { logAudit } from '../../services/audit.js';
 
@@ -27,6 +28,7 @@ export const changeUserRole = async (req: Request, res: Response): Promise<void>
     }
 
     const admin: JWTPayload = (req as any).user;
+    const { tenantId } = req as TenantContextRequest;
     const { userId, newRole }: ChangeUserRoleRequest = req.body;
 
     // Find the target user
@@ -51,7 +53,7 @@ export const changeUserRole = async (req: Request, res: Response): Promise<void>
     }
 
     // Ensure the target user is in the same organization as the admin
-    if (targetUser.organizationId !== admin.organizationId) {
+    if (targetUser.organizationId !== tenantId) {
       res.status(403).json({
         success: false,
         message: 'Cannot modify users from other organizations',
@@ -77,7 +79,7 @@ export const changeUserRole = async (req: Request, res: Response): Promise<void>
       success: true,
       targetType: 'User',
       targetId: userId,
-      organizationId: admin.organizationId,
+      organizationId: tenantId!,
       actorType: 'USER',
       actorId: admin.userId,
       metadata: { newRole },

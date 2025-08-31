@@ -1,16 +1,18 @@
 import { Request, Response } from 'express';
 import prisma from '../../config/prisma.js';
 import { JWTPayload } from '../../types/auth.js';
+import { TenantContextRequest } from '../../middleware/tenant.js';
 import { ApiResponse } from '../../types/api.js';
 
 export const getOrganizationUsers = async (req: Request, res: Response): Promise<void> => {
   try {
     const admin: JWTPayload = (req as any).user;
+    const { tenantId } = req as TenantContextRequest;
 
     // Get all users in the admin's organization
     const users = await prisma.user.findMany({
       where: {
-        organizationId: admin.organizationId,
+        organizationId: tenantId!,
       },
       select: {
         id: true,
